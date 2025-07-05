@@ -10,7 +10,19 @@ const connectToDB = require("./config/db");
 connectToDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+//useless sala --> app.use(express.static('public')); //// serve static files like css, js
+
+app.use('/public', express.static('public'));
+
+
+
+
 app.set("view engine", "ejs");
+app.set('views', __dirname + '/views'); // adjust if needed
+
+
+
 app.use("/", indexRouter);
 app.use("/user", userRouter);
 

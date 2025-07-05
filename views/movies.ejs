@@ -8,36 +8,41 @@
 <body>
   <header>
     <h1>🎬 Movie Explorer</h1>
-    <nav>
-      <a href="/">Home</a>
-      <a href="/about">About</a>
-      <a href="/movies">Movies</a>
-      <a href="/anime">Anime</a>
-      <a href="/series">Series</a>
-      <a href="/faq">FAQ</a>
-      <a href="/contact">Contact</a>
-    </nav>
   </header>
 
   <main>
-    <h2>Movie Search</h2>
-    <form action="/movies/search" method="GET">
-      <input name="q" placeholder="Movie name" required />
+    <h2>Search Movies</h2>
+    <form action="/movies" method="GET">
+      <input name="q" placeholder="Enter movie name" value="<%= typeof searchTerm !== 'undefined' ? searchTerm : '' %>" required />
       <button type="submit">Search</button>
     </form>
 
-    <% if (movies) { %>
-      <h3>Search Results:</h3>
-      <ul>
-        <% movies.forEach(movie => { %>
-          <li><%= movie.title %> (<%= movie.release_date %>)</li>
-        <% }) %>
-      </ul>
-    <% } %>
-  </main>
+    <div id="results">
 
-  <footer>
-    <p>© 2025 Movie Explorer</p>
-  </footer>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <p><%= error %></p>
+      <% } %>
+
+      <% if ((typeof movies !== 'undefined' && movies.length === 0) && (typeof searchTerm !== 'undefined' && searchTerm)) { %>
+
+        <p>No results found for "<%= searchTerm %>"</p>
+      <% } %>
+
+      <% if (typeof movies !== 'undefined' && movies.length > 0) { %>
+        <% movies.forEach(function(movie) { %>
+          <div class="movie-card">
+            <h3><%= movie.title %> (<%= movie.release_date ? movie.release_date.split('-')[0] : 'N/A' %>)</h3>
+            <% if (movie.poster_path) { %>
+              <img src="https://image.tmdb.org/t/p/w200<%= movie.poster_path %>" alt="<%= movie.title %> poster" />
+            <% } else { %>
+              <p>No poster available</p>
+            <% } %>
+            <p><%= movie.overview || 'No description available.' %></p>
+          </div>
+        <% }); %>
+      <% } %>
+
+    </div>
+  </main>
 </body>
 </html>
