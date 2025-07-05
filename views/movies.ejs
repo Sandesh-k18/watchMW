@@ -1,24 +1,43 @@
-<% layout('layout') %>
-<h2>Movie Search</h2>
-<form action="/movies">
-  <input name="q" placeholder="Movie name" required />
-  <button>Search</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Movie Search</title>
+  <link rel="stylesheet" href="/public/style.css" />
+</head>
+<body>
+  <header>
+    <h1>🎬 Movie Explorer</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/movies">Movies</a>
+      <a href="/anime">Anime</a>
+      <a href="/series">Series</a>
+      <a href="/faq">FAQ</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </header>
 
-<% if (movies) { %>
-  <% if (movies.length > 0) { %>
-    <ul>
-      <% movies.forEach(m => { %>
-        <li>
-          <strong><%= m.title %> (<%= m.release_date ? m.release_date.split('-')[0] : 'N/A' %>)</strong><br>
-          <%= m.overview %><br>
-          <% if (m.poster_path) { %>
-            <img src="https://image.tmdb.org/t/p/w200<%= m.poster_path %>">
-          <% } %>
-        </li>
-      <% }) %>
-    </ul>
-  <% } else { %>
-    <p>No results found.</p>
-  <% } %>
-<% } %>
+  <main>
+    <h2>Movie Search</h2>
+    <form action="/movies/search" method="GET">
+      <input name="q" placeholder="Movie name" required />
+      <button type="submit">Search</button>
+    </form>
+
+    <% if (movies) { %>
+      <h3>Search Results:</h3>
+      <ul>
+        <% movies.forEach(movie => { %>
+          <li><%= movie.title %> (<%= movie.release_date %>)</li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </main>
+
+  <footer>
+    <p>© 2025 Movie Explorer</p>
+  </footer>
+</body>
+</html>
