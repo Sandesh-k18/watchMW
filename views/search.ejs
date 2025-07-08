@@ -1,48 +1,187 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Movie Search</title>
-  <link rel="stylesheet" href="/public/style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Search</title>
+    <!-- Google Fonts CDN for Inter -->
+    <link href="/search.css" rel="stylesheet">
+    
 </head>
 <body>
-  <header>
-    <h1>🎬 Movie Explorer</h1>
-  </header>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/search" class="nav-link">Search Movies</a>
+            <a href="/list" class="nav-link">List</a>
+            <a href="/about" class="nav-link">About</a>
+            <a href="/contact" class="nav-link">Contact</a>
+            <a href="/faq" class="nav-link">FAQ</a>
+        </div>
+    </nav>
 
-  <main>
-    <h2>Search Movies</h2>
-    <form action="/movies" method="GET">
-      <input name="q" placeholder="Enter movie name" value="<%= typeof searchTerm !== 'undefined' ? searchTerm : '' %>" required />
-      <button type="submit">Search</button>
-    </form>
+    <div class="container">
+        <h1>Movie Search</h1>
 
-    <div id="results">
+        <form id="searchForm" class="search-form">
+            <input
+                type="text"
+                id="movieQuery"
+                name="query"
+                placeholder="Search for a movie..."
+                class="search-input"
+                required
+            >
+            <button
+                type="submit"
+                class="search-button"
+            >
+                Search
+            </button>
+        </form>
 
-      <% if (typeof error !== 'undefined' && error) { %>
-        <p><%= error %></p>
-      <% } %>
+        <div id="loadingIndicator" class="loading-indicator hidden">
+            Searching for movies...
+        </div>
 
-      <% if ((typeof movies !== 'undefined' && movies.length === 0) && (typeof searchTerm !== 'undefined' && searchTerm)) { %>
+        <div id="results" class="results-grid">
+            <!-- Movie results will be injected here by JavaScript -->
+        </div>
 
-        <p>No results found for "<%= searchTerm %>"</p>
-      <% } %>
-
-      <% if (typeof movies !== 'undefined' && movies.length > 0) { %>
-        <% movies.forEach(function(movie) { %>
-          <div class="movie-card">
-            <h3><%= movie.title %> (<%= movie.release_date ? movie.release_date.split('-')[0] : 'N/A' %>)</h3>
-            <% if (movie.poster_path) { %>
-              <img src="https://image.tmdb.org/t/p/w200<%= movie.poster_path %>" alt="<%= movie.title %> poster" />
-            <% } else { %>
-              <p>No poster available</p>
-            <% } %>
-            <p><%= movie.overview || 'No description available.' %></p>
-          </div>
-        <% }); %>
-      <% } %>
-
+        <div id="noResults" class="no-results hidden">
+            No movies found for your search. Please try a different query.
+        </div>
     </div>
-  </main>
+
+    <!-- Custom Message Box -->
+    <div id="messageBox" class="message-box hidden">
+        <div class="header">
+            <h3 id="messageTitle"></h3>
+            <button id="closeMessageBox" class="close-button">&times;</button>
+        </div>
+        <p id="messageContent"></p>
+    </div>
+
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const movieQueryInput = document.getElementById('movieQuery');
+        const resultsDiv = document.getElementById('results');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const noResultsDiv = document.getElementById('noResults');
+        const messageBox = document.getElementById('messageBox');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageContent = document.getElementById('messageContent');
+        const closeMessageBox = document.getElementById('closeMessageBox');
+
+        // Function to show a custom message box
+        function showMessageBox(title, message) {
+            messageTitle.textContent = title;
+            messageContent.textContent = message;
+            messageBox.classList.add('show');
+        }
+
+        // Function to hide the custom message box
+        function hideMessageBox() {
+            messageBox.classList.remove('show');
+        }
+
+        // Event listener for closing the message box
+        closeMessageBox.addEventListener('click', hideMessageBox);
+
+        searchForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent default form submission
+
+            const query = movieQueryInput.value.trim();
+
+            if (!query) {
+                showMessageBox('Input Error', 'Please enter a movie title to search.');
+                return;
+            }
+
+            resultsDiv.innerHTML = ''; // Clear previous results
+            loadingIndicator.classList.remove('hidden'); // Show loading indicator
+            noResultsDiv.classList.add('hidden'); // Hide no results message
+
+            try {
+                // Log the URL being fetched to help debug server-side routing issues
+                console.log('Fetching movies from:', `${window.location.origin}/search-movies`);
+
+                // Using window.location.origin to ensure absolute URL for fetch
+                const response = await fetch(`${window.location.origin}/search-movies`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query }),
+                });
+
+                if (!response.ok) {
+                    // Attempt to parse error response, might not be JSON if server sends HTML
+                    const errorText = await response.text(); // Read as text first
+                    try {
+                        const errorData = JSON.parse(errorText); // Then try to parse as JSON
+                        throw new Error(errorData.error || 'Something went wrong on the server.');
+                    } catch (e) {
+                        // If parsing fails, the response was likely not JSON (e.g., HTML)
+                        throw new Error(`Unexpected response format: ${errorText.substring(0, 100)}...`);
+                    }
+                }
+
+                const data = await response.json();
+
+                if (data.movies && data.movies.length > 0) {
+                    data.movies.forEach(movie => {
+                        const movieCard = document.createElement('div');
+                        movieCard.classList.add('movie-card'); // Use custom class
+
+                        const poster = document.createElement('img');
+                        poster.src = movie.poster_path;
+                        poster.alt = movie.title;
+                        poster.classList.add('poster-image'); // Use custom class
+                        poster.onerror = function() {
+                            this.onerror=null; // Prevent infinite loop
+                            this.src='/images/your_logo_filename.png'; // Fallback to your custom logo
+                        };
+
+                        const titleElement = document.createElement('h2');
+                        const titleLink = document.createElement('a'); // Create an anchor for the title
+                        titleLink.href = `/movie/${movie.id}`; // Link to the new movie details page
+                        titleLink.textContent = movie.title;
+                        titleElement.appendChild(titleLink);
+
+
+                        // Create and append the rating element
+                        const rating = document.createElement('p');
+                        rating.classList.add('movie-rating');
+                        rating.textContent = movie.vote_average ? `Rating: ${movie.vote_average.toFixed(1)} / 10` : 'Rating: N/A';
+
+                        const overview = document.createElement('p');
+                        overview.classList.add('overview'); // Use custom class
+                        overview.textContent = movie.overview || 'No description available.';
+
+                        const releaseDate = document.createElement('p');
+                        releaseDate.classList.add('release-date'); // Use custom class
+                        releaseDate.textContent = movie.release_date ? `Release Date: ${movie.release_date}` : '';
+
+
+                        movieCard.appendChild(poster);
+                        movieCard.appendChild(titleElement); // Append the h2 with the link
+                        movieCard.appendChild(rating); // Add rating here
+                        movieCard.appendChild(overview);
+                        movieCard.appendChild(releaseDate);
+                        resultsDiv.appendChild(movieCard);
+                    });
+                } else {
+                    noResultsDiv.classList.remove('hidden'); // Show no results message
+                }
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showMessageBox('Error', `Failed to fetch movies: ${error.message}`);
+            } finally {
+                loadingIndicator.classList.add('hidden'); // Hide loading indicator
+            }
+        });
+    </script>
 </body>
 </html>

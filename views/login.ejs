@@ -1,58 +1,66 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link
-      href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css"
-      rel="stylesheet"
-    />
-  </head>
-  <body
-    class="bg-gray-100 dark: bg-gray-800 h-screen w-screen flex items-center justify-center"
-  >
-    <form class="w-96" action="/user/login" method="post">
-      <div>
-        <label
-          for="username"
-          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-          >Username</label
-        >
-        <input
-          type="text"
-          id="username"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Enter username"
-          required
-          name="username"
-        />
-      </div>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login to Your Account</title>
+    <link href="/login.style.css" rel="stylesheet">
+    
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/list" class="nav-link">List</a>
+            <a href="/about" class="nav-link">About</a>
+            <a href="/contact" class="nav-link">Contact</a>
+            <a href="/faq" class="nav-link">FAQ</a>
+        </div>
+    </nav>
 
-      <div class="mb-6">
-        <label
-          for="password"
-          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-          >Password</label
-        >
-        <input
-          type="password"
-          id="password"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="•••••••••"
-          required
-          name="password"
-        />
-      </div>
+    <div class="form-container">
+        <h1>Log In to Your Account</h1>
 
-      <button
-        type="submit"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-      >
-        Log in
-      </button>
-    </form>
+        <form action="/user/login" method="post">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Your password" required>
+            </div>
+            <button type="submit" class="submit-button">Log In</button>
+        </form>
 
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
-  </body>
+        <div class="divider">OR</div>
+
+        <button type="button" class="google-button" onclick="handleGoogleSignIn()">
+            <span class="google-icon">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png" alt="Google logo">
+            </span>
+            Continue with Google
+        </button>
+
+        <a href="/user/register" class="switch-link">Don't have an account? Register</a>
+    </div>
+
+    <script>
+        // Placeholder function for Google Sign-In.
+        // Actual implementation would involve Google Identity Services library and backend OAuth flow.
+        function handleGoogleSignIn() {
+            // In a real application, you'd initiate Google's OAuth flow here.
+            // This might involve:
+            // 1. Loading Google's GSI client library: <script src="https://accounts.google.com/gsi/client" async defer></script>
+            // 2. Initializing gapi/gis client.
+            // 3. Triggering a popup or redirect for Google sign-in.
+            // 4. Handling the response (credential token) and sending it to your backend.
+            console.log("Google Sign-In button clicked. (Functionality not implemented in EJS only)");
+            // You might show a message box here, similar to the movie search error handling
+            // showMessageBox('Google Sign-In', 'Google Sign-In functionality needs backend integration.');
+        }
+        // Added a simple log to ensure script block is well-formed at the end
+        console.log("login.ejs script loaded.");
+    </script>
+</body>
 </html>

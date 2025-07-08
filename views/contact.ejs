@@ -1,37 +1,41 @@
-<!-- contact.html -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Contact - Movie Explorer</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header>
-    <h1>Contact Us</h1>
-    <nav>
-      <a href="/">Home</a>
-        <a href="/about">About</a>
-        <a href="/movies">Movies</a>
-        <a href="/anime">Anime</a>
-        <a href="/series">Series</a>
-        <a href="/faq">FAQ</a>
-        <a href="/contact">Contact</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Us</title>
+    <link href="/contact.css" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/list" class="nav-link">List</a>
+        <a href="/about" class="nav-link">About</a>
+        <a href="/contact" class="nav-link">Contact</a>
+        <a href="/faq" class="nav-link">FAQ</a>
+        <a href="/user/login" class="nav-link">Get Started</a>
+      </div>
     </nav>
-  </header>
 
-  <main>
-    <form>
-      <label>Name:</label><br>
-      <input type="text"><br><br>
-      <label>Email:</label><br>
-      <input type="email"><br><br>
-      <label>Message:</label><br>
-      <textarea rows="4"></textarea><br><br>
-      <button type="submit">Send</button>
-    </form>
-  </main>
-
-  <footer><p>© 2025 Movie Explorer</p></footer>
-</body>
+    <div class="content-container">
+      <h1>Contact Us</h1>
+      <p>
+        Have questions, feedback, or just want to say hello? We'd love to hear
+        from you!
+      </p>
+      <div class="contact-info">
+        <p><strong>Email:</strong> support@moviesearch.com</p>
+        <p><strong>Phone:</strong> +1 (555) 123-4567</p>
+        <p><strong>Address:</strong> 123 Movie Lane, Cinema City, CA 90210</p>
+        <p>
+          Our support team is available Monday to Friday, 9 AM - 5 PM (PST).
+        </p>
+      </div>
+      <p>
+        Feel free to reach out to us through any of the channels above. We'll
+        get back to you as soon as possible.
+      </p>
+    </div>
+  </body>
 </html>

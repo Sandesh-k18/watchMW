@@ -9,7 +9,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
     "axios": "^1.10.0",
@@ -26,5 +25,14 @@
   },
   "devDependencies": {
     "daisyui": "^5.0.46"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sandesh-k18/watchMW.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sandesh-k18/watchMW/issues"
+  },
+  "homepage": "https://github.com/Sandesh-k18/watchMW#readme",
+  "description": ""
 }

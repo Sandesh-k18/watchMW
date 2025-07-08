@@ -1,29 +1,46 @@
-<!-- about.html -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>About - Movie Explorer</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header>
-    <h1>About Us</h1>
-    <nav>
-      <a href="/">Home</a>
-        <a href="/about">About</a>
-        <a href="/movies">Movies</a>
-        <a href="/anime">Anime</a>
-        <a href="/series">Series</a>
-        <a href="/faq">FAQ</a>
-        <a href="/contact">Contact</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us</title>
+    <link href="/about.css" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/list" class="nav-link">List</a>
+        <a href="/about" class="nav-link">About</a>
+        <a href="/contact" class="nav-link">Contact</a>
+        <a href="/faq" class="nav-link">FAQ</a>
+        <a href="/user/login" class="nav-link">Get Started</a>
+      </div>
     </nav>
-  </header>
 
-  <main>
-    <p>Movie Explorer is a simple web app that lets users search for movies using The Movie Database (TMDB) API.</p>
-  </main>
-
-  <footer><p>© 2025 Movie Explorer</p></footer>
-</body>
+    <div class="content-container">
+      <h1>About Our Movie Search Project</h1>
+      <p>
+        Welcome to our movie search application! This project was created to
+        provide a simple yet powerful way to discover movies using the vast
+        database of The Movie Database (TMDB).
+      </p>
+      <p>
+        Our goal is to offer a seamless user experience, allowing you to quickly
+        find movie posters, descriptions, and release dates. We believe in clean
+        design and efficient functionality to make your movie exploration
+        enjoyable.
+      </p>
+      <p>
+        This application is built with Node.js and Express on the backend for
+        handling API requests and serving dynamic content, and EJS for rendering
+        the views. We've focused on creating a responsive design that works well
+        across various devices.
+      </p>
+      <p>
+        Thank you for using our application. We hope you find it useful for all
+        your movie searching needs!
+      </p>
+    </div>
+  </body>
 </html>

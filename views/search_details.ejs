@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Details</title>
+    <link href="/search_details.css" rel="stylesheet">
+    
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/search" class="nav-link">Search Movies</a>
+            <a href="/list" class="nav-link">List</a>
+            <a href="/about" class="nav-link">About</a>
+            <a href="/contact" class="nav-link">Contact</a>
+            <a href="/faq" class="nav-link">FAQ</a>
+        </div>
+    </nav>
+
+    <div class="movie-details-container">
+        <div id="loadingIndicator" style="text-align: center; width: 100%; font-size: 1.2rem; color: #6b7280;">
+            Loading movie details...
+        </div>
+        <div id="movieContent" style="display: none;">
+            <!-- Movie details will be dynamically loaded here -->
+            <img id="moviePoster" class="movie-poster-large" src="" alt="Movie Poster">
+            <div class="movie-info">
+                <h1 id="movieTitle"></h1>
+                <p id="movieTagline" class="tagline"></p>
+                <p id="movieOverview"></p>
+                <div class="movie-meta">
+                    <span id="movieRating"></span>
+                    <span id="movieReleaseDate"></span>
+                    <span id="movieRuntime"></span>
+                    <span id="movieGenres"></span>
+                </div>
+
+                <h2 class="section-title">Director(s)</h2>
+                <p id="movieDirectors" class="director-info"></p>
+
+                <h2 class="section-title">Top Cast</h2>
+                <div id="movieCast" class="cast-grid">
+                    <!-- Cast members will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="messageBox" class="message-box hidden">
+        <div class="header">
+            <h3 id="messageTitle"></h3>
+            <button id="closeMessageBox" class="close-button">&times;</button>
+        </div>
+        <p id="messageContent"></p>
+    </div>
+
+    <script>
+        const movieId = "<%= movieId %>"; // Get movie ID passed from the server
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const movieContent = document.getElementById('movieContent');
+        const moviePoster = document.getElementById('moviePoster');
+        const movieTitle = document.getElementById('movieTitle');
+        const movieTagline = document.getElementById('movieTagline');
+        const movieOverview = document.getElementById('movieOverview');
+        const movieRating = document.getElementById('movieRating');
+        const movieReleaseDate = document.getElementById('movieReleaseDate');
+        const movieRuntime = document.getElementById('movieRuntime');
+        const movieGenres = document.getElementById('movieGenres');
+        const movieDirectors = document.getElementById('movieDirectors');
+        const movieCast = document.getElementById('movieCast');
+
+        const messageBox = document.getElementById('messageBox');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageContent = document.getElementById('messageContent');
+        const closeMessageBox = document.getElementById('closeMessageBox');
+
+        // Function to show a custom message box
+        function showMessageBox(title, message) {
+            messageTitle.textContent = title;
+            messageContent.textContent = message;
+            messageBox.classList.add('show');
+        }
+
+        // Function to hide the custom message box
+        function hideMessageBox() {
+            messageBox.classList.remove('show');
+        }
+
+        // Event listener for closing the message box
+        closeMessageBox.addEventListener('click', hideMessageBox);
+
+        async function fetchMovieDetails() {
+            if (!movieId) {
+                showMessageBox('Error', 'Movie ID is missing.');
+                loadingIndicator.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${window.location.origin}/api/movie-details/${movieId}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to fetch movie details.');
+                }
+                const movie = await response.json();
+
+                // Populate movie details
+                movieTitle.textContent = movie.title;
+                movieTagline.textContent = movie.tagline || '';
+                movieOverview.textContent = movie.overview || 'No overview available.';
+                movieRating.textContent = movie.vote_average ? `Rating: ${movie.vote_average.toFixed(1)} / 10` : 'Rating: N/A';
+                movieReleaseDate.textContent = movie.release_date ? `Released: ${movie.release_date}` : 'Release Date: N/A';
+                movieRuntime.textContent = movie.runtime ? `Runtime: ${movie.runtime} min` : 'Runtime: N/A';
+                movieGenres.textContent = movie.genres && movie.genres.length > 0 ? `Genres: ${movie.genres.join(', ')}` : 'Genres: N/A';
+
+                moviePoster.src = movie.poster_path;
+                moviePoster.alt = movie.title + " Poster";
+                moviePoster.onerror = function() {
+                    this.onerror = null;
+                    this.src = '/images/your_logo_filename.png'; // Fallback to your custom logo
+                };
+
+                // Populate directors
+                if (movie.directors && movie.directors.length > 0) {
+                    movieDirectors.textContent = `Directed by: ${movie.directors.join(', ')}`;
+                } else {
+                    movieDirectors.textContent = 'Director(s): N/A';
+                }
+
+                // Populate cast
+                movieCast.innerHTML = ''; // Clear previous cast
+                if (movie.cast && movie.cast.length > 0) {
+                    movie.cast.forEach(actor => {
+                        const actorDiv = document.createElement('div');
+                        actorDiv.classList.add('cast-member');
+
+                        const actorImg = document.createElement('img');
+                        actorImg.src = actor.profile_path || 'https://placehold.co/80x80/cccccc/333333?text=No+Pic'; // Placeholder for actor image
+                        actorImg.alt = actor.name;
+                        actorImg.onerror = function() {
+                            this.onerror = null;
+                            this.src = 'https://placehold.co/80x80/cccccc/333333?text=No+Pic';
+                        };
+
+                        const actorName = document.createElement('p');
+                        actorName.classList.add('name');
+                        actorName.textContent = actor.name;
+
+                        const actorCharacter = document.createElement('p');
+                        actorCharacter.classList.add('character');
+                        actorCharacter.textContent = actor.character;
+
+                        actorDiv.appendChild(actorImg);
+                        actorDiv.appendChild(actorName);
+                        actorDiv.appendChild(actorCharacter);
+                        movieCast.appendChild(actorDiv);
+                    });
+                } else {
+                    movieCast.innerHTML = '<p style="width:100%; text-align:center; color:#6b7280;">No cast information available.</p>';
+                }
+
+                loadingIndicator.style.display = 'none';
+                movieContent.style.display = 'flex'; // Show content
+            } catch (error) {
+                console.error('Error loading movie details:', error);
+                showMessageBox('Error', `Could not load movie details: ${error.message}`);
+                loadingIndicator.style.display = 'none';
+                movieContent.style.display = 'none'; // Hide content if error
+            }
+        }
+
+        // Fetch movie details when the page loads
+        document.addEventListener('DOMContentLoaded', fetchMovieDetails);
+    </script>
+</body>
+</html>

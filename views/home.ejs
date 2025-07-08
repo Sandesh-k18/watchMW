@@ -2,32 +2,58 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Movie Explorer - Home</title>
-    <link rel="stylesheet" href="style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to Movie Search</title>
+    <link href="/home.css" rel="stylesheet" />
   </head>
   <body>
-    <header>
-      <h1>🎬 Movie Explorer</h1>
-      <nav>
-        <a href="/">Home</a>
-        <a href="/about">About</a>
-        <a href="/movies">Movies</a>
-        <a href="/anime">Anime</a>
-        <a href="/series">Series</a>
-        <a href="/faq">FAQ</a>
-        <a href="/contact">Contact</a>
-      </nav>
-    </header>
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/list" class="nav-link">List</a>
+        <a href="/about" class="nav-link">About</a>
+        <a href="/contact" class="nav-link">Contact</a>
+        <a href="/faq" class="nav-link">FAQ</a>
+        <a href="/user/login" class="nav-link">Get Started</a>
+      </div>
+    </nav>
 
-    <main>
-      <h2>Welcome to Movie Explorer</h2>
+    <div class="content-container">
+      <h1>Discover Your Next Favorite Movie!</h1>
       <p>
-        Find details and descriptions of your favorite movies using TMDB API.
+        Welcome to our comprehensive movie search platform. Dive into a world of
+        cinematic wonders, from timeless classics to the latest blockbusters.
       </p>
-    </main>
+      <p>
+        Easily find detailed information, stunning posters, and insightful
+        overviews for millions of movies, powered by The Movie Database (TMDB).
+      </p>
 
-    <footer>
-      <p>© 2025 Movie Explorer</p>
-    </footer>
+      <a href="/search" class="call-to-action">Start Searching Now!</a>
+
+      <ul class="feature-list">
+        <li class="feature-item">
+          <h3>Vast Movie Database</h3>
+          <p>
+            Access an extensive collection of movies with up-to-date
+            information, thanks to our integration with TMDB.
+          </p>
+        </li>
+        <li class="feature-item">
+          <h3>Detailed Information</h3>
+          <p>
+            Get movie titles, release dates, compelling overviews, and
+            high-quality posters at your fingertips.
+          </p>
+        </li>
+        <li class="feature-item">
+          <h3>User-Friendly Interface</h3>
+          <p>
+            Enjoy a clean, intuitive, and responsive design that makes movie
+            discovery a breeze on any device.
+          </p>
+        </li>
+      </ul>
+    </div>
   </body>
 </html>

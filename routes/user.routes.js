@@ -5,9 +5,7 @@ const userModel = require("../models/user.models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-router.get("/test", (req, res) => {
-  res.send("User Route1");
-});
+
 
 router.get("/register", (req, res) => {
   res.render("register");
