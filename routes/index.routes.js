@@ -11,18 +11,9 @@ router.get("/about", (req, res) => {
 router.get("/contact", (req, res) => {
   res.render("contact");
 });
-
-
-
-
-
-router.get("/anime", (req, res) => {
-  res.render("anime");
-});
-router.get("/series", (req, res) => {
-  res.render("series");
-});
-
+router.get("/faq", (req,res)=>{
+  res.render("faq")
+})
 
 
 
@@ -34,7 +25,7 @@ router.get("/series", (req, res) => {
 
 
 ////////////////////////////////
-router.get('/movies', async (req, res) => {
+router.get('/search', async (req, res) => {
   const searchTerm = req.query.q || '';
   try {
     if (!searchTerm) {
@@ -48,13 +39,10 @@ router.get('/movies', async (req, res) => {
     res.render('movies', { movies, searchTerm, error: null });
   } catch (error) {
     console.error(error);
-    res.render('movies', { movies: null, searchTerm, error: 'Error fetching movies' });
+    res.render('search', { movies: null, searchTerm, error: 'Error fetching movies' });
   }
 });
 
-
-
-///////////////////////////////
 
 
 

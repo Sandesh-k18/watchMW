@@ -23,5 +23,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
     "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "daisyui": "^5.0.46"
   }
 }
