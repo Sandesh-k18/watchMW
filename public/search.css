@@ -174,18 +174,18 @@
             }
         }
 
-        /* Movie card styles */
+        /* Movie card styles - UPDATED */
         .movie-card {
             background-color: #ffffff;
             border-radius: 0.75rem;
             overflow: hidden;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
+            position: relative; /* For hover overlay */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease-in-out;
+            cursor: pointer; /* Indicate clickable */
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Ensure cards are same height in grid */
         }
 
         .movie-card:hover {
@@ -194,48 +194,79 @@
 
         .poster-image {
             width: 100%;
-            height: 300px;
+            height: 250px; /* Adjusted height for more compact card */
             object-fit: cover;
             border-radius: 0.5rem;
-            margin-bottom: 1rem;
+            display: block; /* Remove extra space below image */
         }
 
-        .movie-card h2 {
-            font-size: 1.25rem;
+        .movie-info-summary {
+            padding: 1rem;
+            text-align: center;
+            flex-grow: 1; /* Allows it to take available space */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Push year to bottom */
+        }
+
+        .movie-info-summary h2 {
+            font-size: 1.1rem; /* Slightly smaller title */
             font-weight: 600;
             color: #111827;
             margin-bottom: 0.5rem;
+            line-height: 1.3;
         }
-
-        .movie-card h2 a { /* Style for clickable title */
+        .movie-info-summary h2 a { /* Style for clickable title */
             text-decoration: none;
             color: #111827;
             transition: color 0.2s ease;
         }
-
-        .movie-card h2 a:hover {
+        .movie-info-summary h2 a:hover {
             color: #6366f1; /* Highlight on hover */
         }
 
-        .movie-card p.overview {
-            color: #374151;
-            font-size: 0.875rem;
-            flex-grow: 1;
-        }
-
-        .movie-card p.release-date {
+        .movie-info-summary p.genre-year {
+            font-size: 0.85rem;
             color: #6b7280;
-            font-size: 0.75rem;
-            margin-top: 0.5rem;
-        }
-
-        /* New style for rating */
-        .movie-rating {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #f59e0b; /* A nice amber/gold color for rating */
             margin-top: 0.25rem;
             margin-bottom: 0.5rem;
+        }
+
+        /* Hover Overlay for Overview */
+        .movie-overview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none; /* Allows click-through to the link below */
+            border-radius: 0.75rem; /* Match card border-radius */
+            text-align: center;
+            overflow: hidden; /* Hide overflow text */
+        }
+
+        .movie-card:hover .movie-overview-overlay {
+            opacity: 1;
+            pointer-events: auto; /* Enable interaction with overlay on hover */
+        }
+
+        .movie-overview-overlay p {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 8; /* Limit overview to 8 lines */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Custom Message Box styles */

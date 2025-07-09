@@ -6,7 +6,7 @@
     <title>Movie Search</title>
     <!-- Google Fonts CDN for Inter -->
     <link href="/search.css" rel="stylesheet">
-    
+   
 </head>
 <body>
     <nav class="navbar">
@@ -73,6 +73,8 @@
         const messageContent = document.getElementById('messageContent');
         const closeMessageBox = document.getElementById('closeMessageBox');
 
+        let genreMap = {}; // To store genre ID to name mapping
+
         // Function to show a custom message box
         function showMessageBox(title, message) {
             messageTitle.textContent = title;
@@ -87,6 +89,28 @@
 
         // Event listener for closing the message box
         closeMessageBox.addEventListener('click', hideMessageBox);
+
+        // Function to fetch movie genres from TMDB and store them
+        async function fetchGenres() {
+            try {
+                const response = await fetch(`${window.location.origin}/api/genres`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch genres.');
+                }
+                const data = await response.json();
+                data.genres.forEach(genre => {
+                    genreMap[genre.id] = genre.name;
+                });
+                console.log('Genres fetched and mapped:', genreMap);
+            } catch (error) {
+                console.error('Error fetching genres:', error);
+                // Not critical enough to show a message box to the user, but log it.
+            }
+        }
+
+        // Call fetchGenres when the page loads
+        document.addEventListener('DOMContentLoaded', fetchGenres);
+
 
         searchForm.addEventListener('submit', async (event) => {
             event.preventDefault(); // Prevent default form submission
@@ -103,10 +127,6 @@
             noResultsDiv.classList.add('hidden'); // Hide no results message
 
             try {
-                // Log the URL being fetched to help debug server-side routing issues
-                console.log('Fetching movies from:', `${window.location.origin}/search-movies`);
-
-                // Using window.location.origin to ensure absolute URL for fetch
                 const response = await fetch(`${window.location.origin}/search-movies`, {
                     method: 'POST',
                     headers: {
@@ -116,13 +136,11 @@
                 });
 
                 if (!response.ok) {
-                    // Attempt to parse error response, might not be JSON if server sends HTML
-                    const errorText = await response.text(); // Read as text first
+                    const errorText = await response.text();
                     try {
-                        const errorData = JSON.parse(errorText); // Then try to parse as JSON
+                        const errorData = JSON.parse(errorText);
                         throw new Error(errorData.error || 'Something went wrong on the server.');
                     } catch (e) {
-                        // If parsing fails, the response was likely not JSON (e.g., HTML)
                         throw new Error(`Unexpected response format: ${errorText.substring(0, 100)}...`);
                     }
                 }
@@ -132,54 +150,69 @@
                 if (data.movies && data.movies.length > 0) {
                     data.movies.forEach(movie => {
                         const movieCard = document.createElement('div');
-                        movieCard.classList.add('movie-card'); // Use custom class
+                        movieCard.classList.add('movie-card');
+
+                        // Create the clickable area for the entire card
+                        const cardLink = document.createElement('a');
+                        cardLink.href = `/movie/${movie.id}`; // Link to the new movie details page
+                        cardLink.style.textDecoration = 'none'; // Remove underline from link
+                        cardLink.style.color = 'inherit'; // Inherit text color
+                        cardLink.style.display = 'block'; // Make the link fill the card
+                        cardLink.style.height = '100%'; // Make the link fill the card
 
                         const poster = document.createElement('img');
                         poster.src = movie.poster_path;
                         poster.alt = movie.title;
-                        poster.classList.add('poster-image'); // Use custom class
+                        poster.classList.add('poster-image');
                         poster.onerror = function() {
-                            this.onerror=null; // Prevent infinite loop
+                            this.onerror=null;
                             this.src='/images/your_logo_filename.png'; // Fallback to your custom logo
                         };
 
+                        const movieInfoSummary = document.createElement('div');
+                        movieInfoSummary.classList.add('movie-info-summary');
+
                         const titleElement = document.createElement('h2');
-                        const titleLink = document.createElement('a'); // Create an anchor for the title
-                        titleLink.href = `/movie/${movie.id}`; // Link to the new movie details page
-                        titleLink.textContent = movie.title;
-                        titleElement.appendChild(titleLink);
+                        titleElement.textContent = movie.title; // Title is now part of the summary
 
+                        const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
 
-                        // Create and append the rating element
-                        const rating = document.createElement('p');
-                        rating.classList.add('movie-rating');
-                        rating.textContent = movie.vote_average ? `Rating: ${movie.vote_average.toFixed(1)} / 10` : 'Rating: N/A';
+                        // Map genre IDs to names
+                        const genreNames = movie.genre_ids && movie.genre_ids.length > 0
+                            ? movie.genre_ids.map(id => genreMap[id]).filter(name => name).join(', ')
+                            : 'N/A';
 
-                        const overview = document.createElement('p');
-                        overview.classList.add('overview'); // Use custom class
-                        overview.textContent = movie.overview || 'No description available.';
+                        const genreYearElement = document.createElement('p');
+                        genreYearElement.classList.add('genre-year');
+                        genreYearElement.textContent = `${genreNames} (${releaseYear})`;
 
-                        const releaseDate = document.createElement('p');
-                        releaseDate.classList.add('release-date'); // Use custom class
-                        releaseDate.textContent = movie.release_date ? `Release Date: ${movie.release_date}` : '';
+                        // Overview for hover
+                        const overviewOverlay = document.createElement('div');
+                        overviewOverlay.classList.add('movie-overview-overlay');
+                        const overviewText = document.createElement('p');
+                        overviewText.textContent = movie.overview || 'No description available.';
+                        overviewOverlay.appendChild(overviewText);
 
+                        movieInfoSummary.appendChild(titleElement);
+                        movieInfoSummary.appendChild(genreYearElement);
+                        // No duration here as explained (N/A from search API)
 
-                        movieCard.appendChild(poster);
-                        movieCard.appendChild(titleElement); // Append the h2 with the link
-                        movieCard.appendChild(rating); // Add rating here
-                        movieCard.appendChild(overview);
-                        movieCard.appendChild(releaseDate);
+                        cardLink.appendChild(poster);
+                        cardLink.appendChild(movieInfoSummary);
+                        cardLink.appendChild(overviewOverlay); // Add overlay to the link
+
+                        movieCard.appendChild(cardLink); // Append the link (containing everything) to the card
                         resultsDiv.appendChild(movieCard);
                     });
                 } else {
-                    noResultsDiv.classList.remove('hidden'); // Show no results message
+                    noResultsDiv.classList.remove('hidden');
                 }
 
             } catch (error) {
                 console.error('Fetch error:', error);
                 showMessageBox('Error', `Failed to fetch movies: ${error.message}`);
             } finally {
-                loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                loadingIndicator.classList.add('hidden');
             }
         });
     </script>
