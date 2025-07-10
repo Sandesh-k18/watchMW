@@ -3,166 +3,375 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login to Your Account</title>
-    <link href="/login.style.css" rel="stylesheet">
-    <!-- Place this script in the <head> section of your EJS files (e.g., home.ejs, search.ejs, movie_details.ejs, login.ejs, register.ejs) -->
-<script type="module">
-    // Import Firebase services
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, query, where, addDoc, getDocs, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // Global variables to hold Firebase instances and user state
-    let app;
-    let db;
-    let auth;
-    let userId = null; // Stores the current user's ID
-    let isAuthReady = false; // Flag to indicate if auth state has been checked
-
-    // Function to show a custom message box (re-using your existing function)
-    function showMessageBox(title, message) {
-        const messageBox = document.getElementById('messageBox');
-        const messageTitle = document.getElementById('messageTitle');
-        const messageContent = document.getElementById('messageContent');
-        if (messageBox && messageTitle && messageContent) {
-            messageTitle.textContent = title;
-            messageContent.textContent = message;
-            messageBox.classList.add('show');
-        } else {
-            console.error("Message box elements not found:", title, message);
+    <title>Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 0;
+            padding-bottom: 2rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
         }
-    }
 
-    // Function to hide the custom message box (re-using your existing function)
-    function hideMessageBox() {
-        const messageBox = document.getElementById('messageBox');
-        if (messageBox) {
-            messageBox.classList.remove('show');
+        /* Navigation Bar Styles */
+        .navbar {
+            width: 100%;
+            background-color: #333;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
-    }
-
-    // Initialize Firebase and set up authentication
-    document.addEventListener('DOMContentLoaded', async () => {
-        try {
-            // Retrieve Firebase config from environment variable (Canvas provides __firebase_config)
-            // For local development, you'd use process.env.FIREBASE_CONFIG parsed on the server
-            const firebaseConfig = JSON.parse(`<%- firebaseConfig %>`);
-const appId = `<%- __app_id %>`;
-const initialAuthToken = `<%- __initial_auth_token %>`; // Fallback for local testing
-
-            if (Object.keys(firebaseConfig).length === 0) {
-                console.error("Firebase config is empty or not provided.");
-                showMessageBox('Firebase Error', 'Firebase configuration is missing. Please check your .env file or Canvas setup.');
-                return;
-            }
-
-            // Initialize Firebase App
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-
-            // Set up authentication state listener
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    // User is signed in.
-                    userId = user.uid;
-                    console.log("Firebase: User signed in:", userId);
-                    // You might want to update UI elements here to show logged-in state
-                } else {
-                    // User is signed out.
-                    userId = null;
-                    console.log("Firebase: User signed out.");
-                    // You might want to update UI elements here to show logged-out state
-                }
-                isAuthReady = true; // Auth state has been determined
-                // Any Firestore operations that depend on auth state can now proceed
-            });
-
-            // Sign in with custom token if provided (from Canvas environment)
-            // Otherwise, sign in anonymously for basic access
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-                console.log("Firebase: Signed in with custom token.");
-            } else {
-                await signInAnonymously(auth);
-                console.log("Firebase: Signed in anonymously.");
-            }
-
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            showMessageBox('Firebase Error', `Failed to initialize Firebase: ${error.message}. Check your console.`);
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
         }
-    });
+        .nav-link {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .nav-link:hover {
+            background-color: #555;
+            color: #fff;
+        }
+        .logout-button {
+            background-color: #dc3545; /* Red for logout */
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
 
-    // Attach hideMessageBox to the close button if it exists
-    const closeMessageBoxButton = document.getElementById('closeMessageBox');
-    if (closeMessageBoxButton) {
-        closeMessageBoxButton.addEventListener('click', hideMessageBox);
-    }
+        /* Form Container Styles */
+        .form-container {
+            width: 100%;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-top: 2rem;
+            text-align: center;
+        }
 
-    // Expose global variables for other scripts to use (optional, but convenient for EJS)
-    window.firebaseApp = app;
-    window.firestoreDb = db;
-    window.firebaseAuth = auth;
-    window.getUserId = () => userId; // Function to get current user ID
-    window.isAuthReady = () => isAuthReady; // Function to check if auth is ready
-</script>
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
 
+        .form-group {
+            margin-bottom: 1.25rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+        }
+
+        .submit-button {
+            background-image: linear-gradient(to right, #6366f1, #8b5cf6);
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 1.1rem;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .link-text {
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        .link-text a {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+
+        .link-text a:hover {
+            color: #4f46e5;
+            text-decoration: underline;
+        }
+
+        /* Custom Message Box styles */
+        .message-box {
+            background-color: #fff;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            display: none;
+            max-width: 400px;
+            width: 90%;
+            text-align: left;
+        }
+        .message-box.show {
+            display: block;
+        }
+        .message-box .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .message-box h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .message-box .close-button {
+            color: #6b7280;
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .message-box .close-button:hover {
+            color: #374151;
+        }
+        .message-box p {
+            color: #374151;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-link">Home</a>
-            <a href="/list" class="nav-link">List</a>
+            <a href="/search" class="nav-link">Search Movies</a>
+            <a href="/user/list" class="nav-link">My Watchlist</a>
             <a href="/about" class="nav-link">About</a>
             <a href="/contact" class="nav-link">Contact</a>
             <a href="/faq" class="nav-link">FAQ</a>
+            <!-- Logout Button (Initially hidden, shown when logged in) -->
+            <button id="logoutButton" class="logout-button hidden">Logout</button>
         </div>
     </nav>
 
     <div class="form-container">
-        <h1>Log In to Your Account</h1>
-
-        <form action="/user/login" method="post">
+        <h1>Login</h1>
+        <form id="loginForm">
             <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Your password" required>
+                <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit" class="submit-button">Log In</button>
+            <button type="submit" class="submit-button">Login</button>
         </form>
-
-        <div class="divider">OR</div>
-
-        <button type="button" class="google-button" onclick="handleGoogleSignIn()">
-            <span class="google-icon">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png" alt="Google logo">
-            </span>
-            Continue with Google
-        </button>
-
-        <a href="/user/register" class="switch-link">Don't have an account? Register</a>
+        <p class="link-text">Don't have an account? <a href="/user/register">Register here</a></p>
     </div>
 
-    <script>
-        // Placeholder function for Google Sign-In.
-        // Actual implementation would involve Google Identity Services library and backend OAuth flow.
-        function handleGoogleSignIn() {
-            // In a real application, you'd initiate Google's OAuth flow here.
-            // This might involve:
-            // 1. Loading Google's GSI client library: <script src="https://accounts.google.com/gsi/client" async defer></script>
-            // 2. Initializing gapi/gis client.
-            // 3. Triggering a popup or redirect for Google sign-in.
-            // 4. Handling the response (credential token) and sending it to your backend.
-            console.log("Google Sign-In button clicked. (Functionality not implemented in EJS only)");
-            // You might show a message box here, similar to the movie search error handling
-            // showMessageBox('Google Sign-In', 'Google Sign-In functionality needs backend integration.');
+    <!-- Custom Message Box -->
+    <div id="messageBox" class="message-box hidden">
+        <div class="header">
+            <h3 id="messageTitle"></h3>
+            <button id="closeMessageBox" class="close-button">&times;</button>
+        </div>
+        <p id="messageContent"></p>
+    </div>
+
+    <script type="module">
+        // Import Firebase services
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, addDoc, getDocs, deleteDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Module-scoped variables for Firebase instances and user state
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let isAuthReady = false;
+        let appId = 'default-app-id'; // Default, will be updated from EJS local variable
+
+        // DOM elements
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const messageBox = document.getElementById('messageBox');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageContent = document.getElementById('messageContent');
+        const closeMessageBoxButton = document.getElementById('closeMessageBox');
+        const logoutButton = document.getElementById('logoutButton'); // Get logout button
+
+        // Function to show a custom message box
+        function showMessageBox(title, message) {
+            if (messageBox && messageTitle && messageContent) {
+                messageTitle.textContent = title;
+                messageContent.textContent = message;
+                messageBox.classList.add('show');
+            } else {
+                console.error("Message box elements not found:", title, message);
+            }
         }
-        // Added a simple log to ensure script block is well-formed at the end
-        console.log("login.ejs script loaded.");
+
+        // Function to hide the custom message box
+        function hideMessageBox() {
+            if (messageBox) {
+                messageBox.classList.remove('show');
+            }
+        }
+
+        // Attach hideMessageBox to the close button
+        if (closeMessageBoxButton) {
+            closeMessageBoxButton.addEventListener('click', hideMessageBox);
+        }
+
+        // Handle Logout
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showMessageBox('Logged Out', 'You have been successfully logged out.');
+                // Redirect to home or login page after logout
+                window.location.href = '/login';
+            } catch (error) {
+                console.error("Error logging out:", error);
+                showMessageBox('Logout Error', `Failed to log out: ${error.message}`);
+            }
+        });
+
+        // Initialize Firebase and set up authentication
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const firebaseConfig = JSON.parse(`<%- firebaseConfig %>`);
+                const initialAuthToken = `<%- __initial_auth_token %>`;
+                appId = `<%- __app_id %>`;
+
+                if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey || !firebaseConfig.authDomain) {
+                    console.error("Firebase config is empty or missing critical properties (apiKey, authDomain).");
+                    showMessageBox('Firebase Error', 'Firebase configuration is missing or incomplete. Please check your server setup and .env file.');
+                    return;
+                }
+
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Firebase: User signed in:", userId);
+                        logoutButton.classList.remove('hidden'); // Show logout button
+                    } else {
+                        userId = null;
+                        console.log("Firebase: User signed out.");
+                        logoutButton.classList.add('hidden'); // Hide logout button
+                    }
+                    isAuthReady = true;
+                });
+
+                if (initialAuthToken && initialAuthToken !== 'null') {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Firebase: Signed in with custom token.");
+                } else {
+                    // Only sign in anonymously if not already authenticated via custom token
+                    if (!auth.currentUser) {
+                        await signInAnonymously(auth);
+                        console.log("Firebase: Signed in anonymously.");
+                    }
+                }
+
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                showMessageBox('Firebase Error', `Failed to initialize Firebase: ${error.message}. Check your console.`);
+            }
+        });
+
+        // Handle Login Form Submission
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            try {
+                // Sign in user with email and password
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                console.log("User logged in:", user.uid);
+                showMessageBox('Login Successful', 'You have been successfully logged in!');
+                // Redirect to the watchlist or home page after successful login
+                window.location.href = '/user/list';
+            } catch (error) {
+                console.error("Login error:", error);
+                let errorMessage = 'Failed to log in. Please check your credentials.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = 'Invalid email or password.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'The email address is not valid.';
+                }
+                showMessageBox('Login Error', errorMessage);
+            }
+        });
     </script>
 </body>
 </html>

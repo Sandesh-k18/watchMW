@@ -215,6 +215,46 @@
             color: #1f2937;
         }
 
+        /* Watchlist Actions Container */
+        .watchlist-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+
+        @media (min-width: 640px) {
+            .watchlist-actions {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+
+        /* Status Dropdown */
+        .status-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            background-color: #f9fafb;
+            color: #333;
+            appearance: none; /* Remove default arrow */
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%234B5563" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 0.7em top 50%, 0 0;
+            background-size: 0.65em auto, 100%;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .status-select:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+        }
+
+
         /* Add to Watchlist Button */
         .add-to-watchlist-button {
             background-image: linear-gradient(to right, #28a745, #218838); /* Green gradient */
@@ -227,7 +267,6 @@
             cursor: pointer;
             border: none;
             outline: none;
-            margin-top: 1.5rem;
             font-size: 1.1rem;
             display: inline-flex; /* Use flex to center icon and text */
             align-items: center;
@@ -305,10 +344,11 @@
         <div class="nav-container">
             <a href="/" class="nav-link">Home</a>
             <a href="/search" class="nav-link">Search Movies</a>
-            <a href="/list" class="nav-link">List</a>
+            <a href="/user/list" class="nav-link">My Watchlist</a>
             <a href="/about" class="nav-link">About</a>
             <a href="/contact" class="nav-link">Contact</a>
             <a href="/faq" class="nav-link">FAQ</a>
+            <a href="/user/profile" class ="nav-link">Profile</a>
         </div>
     </nav>
 
@@ -338,10 +378,18 @@
                     <!-- Cast members will be injected here -->
                 </div>
 
-                <!-- Add to Watchlist Button -->
-                <button id="addToWatchlistButton" class="add-to-watchlist-button">
-                    <span id="buttonText">Add to Watchlist</span>
-                </button>
+                <!-- Watchlist Actions -->
+                <div class="watchlist-actions">
+                    <select id="watchStatusSelect" class="status-select">
+                        <option value="Plan to Watch">Plan to Watch</option>
+                        <option value="Watching">Watching</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Dropped">Dropped</option>
+                    </select>
+                    <button id="addToWatchlistButton" class="add-to-watchlist-button">
+                        <span id="buttonText">Add to Watchlist</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -361,7 +409,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, query, where, addDoc, getDocs, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables to hold Firebase instances and user state
+        // Module-scoped variables for Firebase instances and user state
         let app;
         let db; // This will hold the Firestore instance
         let auth;
@@ -385,6 +433,7 @@
         const movieCast = document.getElementById('movieCast');
         const addToWatchlistButton = document.getElementById('addToWatchlistButton');
         const buttonText = document.getElementById('buttonText');
+        const watchStatusSelect = document.getElementById('watchStatusSelect'); // New dropdown
 
         let currentMovieData = null; // To store the fetched movie data for watchlist saving
 
@@ -410,7 +459,7 @@
             }
         }
 
-        // Attach hideMessageBox to the close button if it exists
+        // Attach hideMessageBox to the close button
         const closeMessageBoxButton = document.getElementById('closeMessageBox');
         if (closeMessageBoxButton) {
             closeMessageBoxButton.addEventListener('click', hideMessageBox);
@@ -429,7 +478,13 @@
 
             try {
                 const docSnap = await getDoc(watchlistRef);
-                return docSnap.exists();
+                if (docSnap.exists()) {
+                    // Set the dropdown to the current status if the movie is found
+                    const movieStatus = docSnap.data().status || 'Plan to Watch'; // Default if status is missing
+                    watchStatusSelect.value = movieStatus;
+                    return true;
+                }
+                return false;
             } catch (error) {
                 console.error("Error checking watchlist status:", error);
                 showMessageBox('Error', 'Could not check watchlist status. Please try again.');
@@ -451,16 +506,19 @@
 
             if (userId) { // Check the module-scoped userId
                 addToWatchlistButton.style.display = 'inline-flex'; // Show button if logged in
+                watchStatusSelect.style.display = 'inline-block'; // Show status select
                 const isInWatchlist = await isMovieInWatchlist(movieId);
                 if (isInWatchlist) {
-                    buttonText.textContent = 'Added to Watchlist';
+                    buttonText.textContent = 'Update Watchlist'; // Change button text
                     addToWatchlistButton.classList.add('added');
                 } else {
                     buttonText.textContent = 'Add to Watchlist';
                     addToWatchlistButton.classList.remove('added');
+                    watchStatusSelect.value = 'Plan to Watch'; // Reset to default when not added
                 }
             } else {
                 addToWatchlistButton.style.display = 'none'; // Hide button if not logged in
+                watchStatusSelect.style.display = 'none'; // Hide status select
             }
         }
 
@@ -478,27 +536,31 @@
 
             // Use the module-scoped db and appId directly
             const watchlistRef = doc(db, `artifacts/${appId}/users/${userId}/watchlist`, String(movieId));
+            const selectedStatus = watchStatusSelect.value; // Get selected status
 
             try {
                 const isInWatchlist = await isMovieInWatchlist(movieId);
 
                 if (isInWatchlist) {
-                    // Remove from watchlist
-                    await deleteDoc(watchlistRef);
-                    showMessageBox('Watchlist Updated', `${currentMovieData.title} removed from your watchlist.`);
+                    // Update existing movie's status
+                    await setDoc(watchlistRef, {
+                        status: selectedStatus,
+                        updated_at: new Date() // Add an update timestamp
+                    }, { merge: true }); // Use merge to only update specified fields
+                    showMessageBox('Watchlist Updated', `${currentMovieData.title} status updated to "${selectedStatus}".`);
                 } else {
                     // Add to watchlist
-                    // Store relevant movie data in Firestore document
                     await setDoc(watchlistRef, {
                         id: currentMovieData.id,
                         title: currentMovieData.title,
                         poster_path: currentMovieData.poster_path,
-                        release_date: currentMovieData.release_date,
+                        release_date: currentMovieData.release_date, // Store release date for sorting
                         vote_average: currentMovieData.vote_average,
                         overview: currentMovieData.overview,
+                        status: selectedStatus, // Save the selected status
                         added_at: new Date() // Timestamp when added
                     });
-                    showMessageBox('Watchlist Updated', `${currentMovieData.title} added to your watchlist!`);
+                    showMessageBox('Watchlist Updated', `${currentMovieData.title} added to your watchlist as "${selectedStatus}"!`);
                 }
                 updateWatchlistButton(); // Update button state after action
             } catch (error) {
@@ -539,7 +601,7 @@
                 moviePoster.alt = movie.title + " Poster";
                 moviePoster.onerror = function() {
                     this.onerror = null;
-                    this.src = 'public/images/default.png'; // Fallback to your custom logo
+                    this.src = '/images/your_logo_filename.png'; // Fallback to your custom logo
                 };
 
                 // Populate directors
@@ -598,19 +660,10 @@
         // Initialize Firebase and set up authentication
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                // Retrieve Firebase config from EJS local variable passed from server
+                // Get Firebase config and Canvas globals from EJS local variables
                 const firebaseConfig = JSON.parse(`<%- firebaseConfig %>`);
-                // Retrieve __app_id and __initial_auth_token from EJS local variables
                 const initialAuthToken = `<%- __initial_auth_token %>`;
-                // Assign appId from the EJS local variable directly to the module-scoped variable
-                appId = `<%- __app_id %>`;
-
-
-                // Debugging: Log the Firebase config and other variables on the client
-                console.log('Parsed firebaseConfig in EJS (client-side):', firebaseConfig);
-                console.log('__app_id in EJS (client-side):', appId);
-                console.log('__initial_auth_token in EJS (client-side):', initialAuthToken);
-
+                appId = `<%- __app_id %>`; // Assign to module-scoped appId
 
                 if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey || !firebaseConfig.authDomain) {
                     console.error("Firebase config is empty or missing critical properties (apiKey, authDomain).");
@@ -618,37 +671,23 @@
                     return;
                 }
 
-                // Initialize Firebase App
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app); // Assign to module-scoped db
                 auth = getAuth(app); // Assign to module-scoped auth
 
-                // Set up authentication state listener
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
-                        // User is signed in.
                         userId = user.uid; // Assign to module-scoped userId
                         console.log("Firebase: User signed in:", userId);
-                        // Call fetchMovieDetails if it exists on the current page
-                        if (typeof fetchMovieDetails === 'function') {
-                            fetchMovieDetails();
-                        }
                     } else {
-                        // User is signed out.
                         userId = null; // Assign to module-scoped userId
                         console.log("Firebase: User signed out.");
-                        showMessageBox('Authentication Required', 'Please log in to add movies to your watchlist.');
-                        // Call fetchMovieDetails if it exists on the current page
-                        if (typeof fetchMovieDetails === 'function') {
-                            fetchMovieDetails(); // Still fetch details, but button will be disabled
-                        }
                     }
                     isAuthReady = true; // Auth state has been determined
+                    fetchMovieDetails(); // Call after auth state is determined
                 });
 
-                // Sign in with custom token if provided (from Canvas environment)
-                // Otherwise, sign in anonymously for basic access
-                if (initialAuthToken && initialAuthToken !== 'null') { // Check for 'null' string as well
+                if (initialAuthToken && initialAuthToken !== 'null') {
                     await signInWithCustomToken(auth, initialAuthToken);
                     console.log("Firebase: Signed in with custom token.");
                 } else {
@@ -661,15 +700,6 @@
                 showMessageBox('Firebase Error', `Failed to initialize Firebase: ${error.message}. Check your console.`);
             }
         });
-
-        // Expose global variables for other scripts to use (optional, but convenient for external scripts)
-        // For internal functions within this module, use the module-scoped variables directly.
-        window.firebaseApp = app;
-        window.firestoreDb = db;
-        window.firebaseAuth = auth;
-        window.getUserId = () => userId; // Function to get current user ID
-        window.isAuthReady = () => isAuthReady; // Function to check if auth is ready
-        window.__app_id = appId; // Expose __app_id globally
     </script>
 </body>
 </html>

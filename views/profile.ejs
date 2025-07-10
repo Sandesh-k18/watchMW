@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>User Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -19,7 +19,6 @@
             padding-left: 1rem;
             padding-right: 1rem;
         }
-
         /* Navigation Bar Styles */
         .navbar {
             width: 100%;
@@ -63,11 +62,13 @@
         .logout-button:hover {
             background-color: #c82333;
         }
-
-        /* Form Container Styles */
-        .form-container {
+        /* Hide class */
+        .hidden {
+            display: none !important;
+        }
+        .profile-container {
             width: 100%;
-            max-width: 450px;
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
             padding: 2rem;
@@ -77,81 +78,40 @@
             margin-top: 2rem;
             text-align: center;
         }
-
         h1 {
-            font-size: 2.25rem;
+            font-size: 2.5rem;
             font-weight: 700;
             color: #1f2937;
             margin-bottom: 1.5rem;
         }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-            text-align: left;
+        p {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 1rem;
         }
-
-        .form-group label {
-            display: block;
-            font-size: 0.9rem;
+        .user-id-display {
             font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
+            color: #6366f1;
+            word-break: break-all; /* Ensure long IDs wrap */
         }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .form-group input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
-        }
-
-        .submit-button {
+        .return-link {
+            display: inline-block;
+            margin-top: 2rem;
             background-image: linear-gradient(to right, #6366f1, #8b5cf6);
             color: #ffffff;
             font-weight: 600;
-            padding: 0.75rem 1.5rem;
+            padding: 0.8rem 1.8rem;
             border-radius: 0.5rem;
+            text-decoration: none;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-            border: none;
-            outline: none;
-            width: 100%;
-            font-size: 1.1rem;
         }
-
-        .submit-button:hover {
+        .return-link:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 15px rgba(99, 102, 241, 0.4);
         }
 
-        .link-text {
-            margin-top: 1.5rem;
-            font-size: 0.95rem;
-            color: #555;
-        }
-
-        .link-text a {
-            color: #6366f1;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.2s ease;
-        }
-
-        .link-text a:hover {
-            color: #4f46e5;
-            text-decoration: underline;
-        }
-
-        /* Custom Message Box styles */
+        /* Custom Message Box styles (reused) */
         .message-box {
             background-color: #fff;
             border-radius: 0.5rem;
@@ -209,28 +169,19 @@
             <a href="/about" class="nav-link">About</a>
             <a href="/contact" class="nav-link">Contact</a>
             <a href="/faq" class="nav-link">FAQ</a>
-            <!-- Logout Button (Initially hidden, shown when logged in) -->
+            <a href="/user/login" id="profileLink" class="nav-link">Profile</a>
             <button id="logoutButton" class="logout-button hidden">Logout</button>
         </div>
     </nav>
 
-    <div class="form-container">
-        <h1>Register</h1>
-        <form id="registerForm">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required minlength="6">
-            </div>
-            <button type="submit" class="submit-button">Register</button>
-        </form>
-        <p class="link-text">Already have an account? <a href="/user/login">Login here</a></p>
+    <div class="profile-container">
+        <h1>User Profile</h1>
+        <p>Welcome to your profile page!</p>
+        <p>Your User ID: <span id="displayUserId" class="user-id-display">Loading...</span></p>
+        <p>This page will eventually contain more personalized information and settings.</p>
+        <a href="/user/list" class="return-link">Go to My Watchlist</a>
     </div>
 
-    <!-- Custom Message Box -->
     <div id="messageBox" class="message-box hidden">
         <div class="header">
             <h3 id="messageTitle"></h3>
@@ -242,7 +193,7 @@
     <script type="module">
         // Import Firebase services
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"; // Added signOut
         import { getFirestore, doc, getDoc, setDoc, collection, query, where, addDoc, getDocs, deleteDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Module-scoped variables for Firebase instances and user state
@@ -251,34 +202,36 @@
         let auth;
         let userId = null;
         let isAuthReady = false;
-        let appId = 'default-app-id'; // Default, will be updated from EJS local variable
+        let appId = 'default-app-id';
 
         // DOM elements
-        const registerForm = document.getElementById('registerForm');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
+        const displayUserId = document.getElementById('displayUserId');
         const messageBox = document.getElementById('messageBox');
         const messageTitle = document.getElementById('messageTitle');
         const messageContent = document.getElementById('messageContent');
         const closeMessageBoxButton = document.getElementById('closeMessageBox');
-        const logoutButton = document.getElementById('logoutButton'); // Get logout button
+        // Get references to navbar elements
+        const profileLink = document.getElementById('profileLink');
+        const logoutButton = document.getElementById('logoutButton');
 
         // Function to show a custom message box
-        function showMessageBox(title, message) {
-            if (messageBox && messageTitle && messageContent) {
-                messageTitle.textContent = title;
-                messageContent.textContent = message;
-                messageBox.classList.add('show');
+        function showMessageBox(title, message, type = 'info') {
+            messageTitle.textContent = title;
+            messageContent.textContent = message;
+            messageBox.classList.remove('hidden');
+            // Optional: add type-specific styling
+            if (type === 'error') {
+                messageTitle.style.color = '#dc3545';
+            } else if (type === 'success') {
+                messageTitle.style.color = '#28a745';
             } else {
-                console.error("Message box elements not found:", title, message);
+                messageTitle.style.color = '#1f2937';
             }
         }
 
         // Function to hide the custom message box
         function hideMessageBox() {
-            if (messageBox) {
-                messageBox.classList.remove('show');
-            }
+            messageBox.classList.add('hidden');
         }
 
         // Attach hideMessageBox to the close button
@@ -286,18 +239,20 @@
             closeMessageBoxButton.addEventListener('click', hideMessageBox);
         }
 
-        // Handle Logout
-        logoutButton.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                showMessageBox('Logged Out', 'You have been successfully logged out.');
-                // Redirect to home or login page after logout
-                window.location.href = '/login';
-            } catch (error) {
-                console.error("Error logging out:", error);
-                showMessageBox('Logout Error', `Failed to log out: ${error.message}`);
+        // Function to update the UI based on authentication state
+        function updateAuthUI(user) {
+            if (user) {
+                profileLink.textContent = 'Profile';
+                profileLink.href = '/user/profile'; // Link to profile page when logged in
+                profileLink.classList.remove('hidden');
+                logoutButton.classList.remove('hidden');
+            } else {
+                profileLink.textContent = 'Login/Register';
+                profileLink.href = '/user/login'; // Link to login page when logged out
+                profileLink.classList.remove('hidden');
+                logoutButton.classList.add('hidden');
             }
-        });
+        }
 
         // Initialize Firebase and set up authentication
         document.addEventListener('DOMContentLoaded', async () => {
@@ -308,7 +263,7 @@
 
                 if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey || !firebaseConfig.authDomain) {
                     console.error("Firebase config is empty or missing critical properties (apiKey, authDomain).");
-                    showMessageBox('Firebase Error', 'Firebase configuration is missing or incomplete. Please check your server setup and .env file.');
+                    showMessageBox('Firebase Error', 'Firebase configuration is missing or incomplete. Please check your server setup and .env file.', 'error');
                     return;
                 }
 
@@ -320,63 +275,41 @@
                     if (user) {
                         userId = user.uid;
                         console.log("Firebase: User signed in:", userId);
-                        logoutButton.classList.remove('hidden'); // Show logout button
+                        displayUserId.textContent = userId; // Display user ID
                     } else {
                         userId = null;
                         console.log("Firebase: User signed out.");
-                        logoutButton.classList.add('hidden'); // Hide logout button
+                        displayUserId.textContent = 'Not logged in. Please log in to view your profile.';
                     }
                     isAuthReady = true;
+                    updateAuthUI(user); // Update UI based on auth state
                 });
 
-                if (initialAuthToken && initialAuthToken !== 'null') {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Firebase: Signed in with custom token.");
-                } else {
-                    // Only sign in anonymously if not already authenticated via custom token
-                    if (!auth.currentUser) {
+                if (!auth.currentUser) {
+                    if (initialAuthToken && initialAuthToken !== 'null') {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Firebase: Signed in with custom token.");
+                    } else {
                         await signInAnonymously(auth);
                         console.log("Firebase: Signed in anonymously.");
                     }
                 }
 
+                // Add event listener for the logout button
+                logoutButton.addEventListener('click', async () => {
+                    try {
+                        await signOut(auth);
+                        showMessageBox('Success', 'You have been successfully logged out.', 'success');
+                        // No explicit redirection here. onAuthStateChanged will update the UI.
+                    } catch (error) {
+                        console.error("Error signing out:", error);
+                        showMessageBox('Error', `Failed to log out: ${error.message}. Please try again.`, 'error');
+                    }
+                });
+
             } catch (error) {
                 console.error("Firebase initialization failed:", error);
-                showMessageBox('Firebase Error', `Failed to initialize Firebase: ${error.message}. Check your console.`);
-            }
-        });
-
-        // Handle Registration Form Submission
-        registerForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const email = emailInput.value;
-            const password = passwordInput.value;
-
-            if (password.length < 6) {
-                showMessageBox('Registration Error', 'Password must be at least 6 characters long.');
-                return;
-            }
-
-            try {
-                // Create user with email and password
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                console.log("User registered:", user.uid);
-                showMessageBox('Registration Successful', 'Account created successfully! You can now log in.');
-                // Redirect to login page after successful registration
-                window.location.href = '/login';
-            } catch (error) {
-                console.error("Registration error:", error);
-                let errorMessage = 'Failed to register. Please try again.';
-                if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = 'This email is already in use. Please try logging in or use a different email.';
-                } else if (error.code === 'auth/weak-password') {
-                    errorMessage = 'The password is too weak. Please choose a stronger password.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'The email address is not valid.';
-                }
-                showMessageBox('Registration Error', errorMessage);
+                showMessageBox('Firebase Error', `Failed to initialize Firebase: ${error.message}. Check your console.`, 'error');
             }
         });
     </script>
