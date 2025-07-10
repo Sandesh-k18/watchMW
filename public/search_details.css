@@ -1,4 +1,4 @@
-
+    
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f2f5;
@@ -208,7 +208,43 @@
             color: #1f2937;
         }
 
-        /* Message Box styles (reused) */
+        /* Add to Watchlist Button */
+        .add-to-watchlist-button {
+            background-image: linear-gradient(to right, #28a745, #218838); /* Green gradient */
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-image 0.3s ease;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            margin-top: 1.5rem;
+            font-size: 1.1rem;
+            display: inline-flex; /* Use flex to center icon and text */
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .add-to-watchlist-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(40, 167, 69, 0.4);
+            background-image: linear-gradient(to right, #218838, #1e7e34); /* Darker green on hover */
+        }
+
+        .add-to-watchlist-button.added { /* Style when movie is already added */
+            background-image: linear-gradient(to right, #6c757d, #5a6268); /* Grey gradient */
+            cursor: default;
+        }
+
+        .add-to-watchlist-button.added:hover {
+            transform: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-image: linear-gradient(to right, #6c757d, #5a6268);
+        }
+
+        /* Custom Message Box styles (reused) */
         .message-box {
             background-color: #fff;
             border-radius: 0.5rem;

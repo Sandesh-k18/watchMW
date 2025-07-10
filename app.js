@@ -1,10 +1,10 @@
 // app.js
-require('dotenv').config(); // Load environment variables from .env file (should be at the very top)
+require('dotenv').config(); // Load environment variables from .env file - MUST be at the very top
 
 const express = require("express");
 const axios = require('axios'); // For making HTTP requests to TMDB
 const path = require('path');   // For handling file paths
-const cookieParser = require("cookie-parser"); // Assuming you use this for user sessions/auth
+const cookieParser = require("cookie-parser"); // For handling cookies
 
 // Initialize Express app
 const app = express();
@@ -22,15 +22,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Serve static files (e.g., your custom logo in public/images, CSS, client-side JS)
-// Make sure you have a 'public' directory in your project root
-// and your logo file inside 'public/images/your_logo_filename.png'
-app.use(express.static('public'))
+// This makes files in the 'public' directory accessible directly from the root URL.
+// Example: public/images/my_logo.png -> /images/my_logo.png
 app.use(express.static(path.join(__dirname, 'public')));
 
 
 // --- EJS View Engine Setup ---
 app.set("view engine", "ejs");
-app.set('views', path.join(__dirname, 'views')); // Correctly set the views directory
+// Correctly set the views directory. Assumes 'views' folder is at the same level as app.js
+app.set('views', path.join(__dirname, 'views'));
 
 
 // --- TMDB API Configuration ---
@@ -41,15 +41,39 @@ const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500'; // Base URL for m
 // Check if TMDB API key is loaded
 if (!TMDB_API_KEY) {
     console.error('Error: TMDB_API_KEY is not set in your .env file.');
-    // In a production app, you might want a more graceful error handling than process.exit(1);
     process.exit(1);
 }
 
+// --- Firebase Configuration for Frontend ---
+// Parse Firebase config from environment variable
+let firebaseConfig = {};
+try {
+    if (process.env.FIREBASE_CONFIG) {
+        firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
+        // Debugging: Log the parsed Firebase config on the server
+        console.log('Parsed firebaseConfig in app.js (server-side):', firebaseConfig);
+    } else {
+        console.warn('Warning: FIREBASE_CONFIG is not set in your .env file. Firebase may not initialize correctly.');
+    }
+} catch (e) {
+    console.error('Error parsing FIREBASE_CONFIG from .env:', e);
+    firebaseConfig = {}; // Ensure it's an empty object on parse error
+}
+
+// Middleware to inject firebaseConfig into all EJS responses
+app.use((req, res, next) => {
+    // Make firebaseConfig available to all EJS templates as a local variable
+    res.locals.firebaseConfig = JSON.stringify(firebaseConfig);
+    // Also pass __app_id and __initial_auth_token if they exist (for Canvas environment)
+    res.locals.__app_id = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    res.locals.__initial_auth_token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    next();
+});
+
 
 // --- Routes from your project structure ---
-// Assuming these routers handle other parts of your application
 const userRouter = require("./routes/user.routes");
-const indexRouter = require("./routes/index.routes"); // Note: 'router' was also used, consolidated to indexRouter
+const indexRouter = require("./routes/index.routes");
 
 app.use("/", indexRouter);
 app.use("/user", userRouter);
@@ -57,43 +81,35 @@ app.use("/user", userRouter);
 
 // --- EJS Page Routes (to render your templates) ---
 
-// Home Page
+// Home Page - Renders views/home.ejs
 app.get("/", (req, res) => {
   res.render("home");
 });
 
-// Movie Search Page (to render search.ejs)
+// Movie Search Page - Renders views/search.ejs
 app.get('/search', (req, res) => {
-    res.render('search', { movies: [] }); // Render search.ejs with an empty movies array initially
+    res.render('search', { movies: [] });
 });
 
-// Movie Details Page (to render search_details.ejs)
+// Movie Details Page - Renders views/movie_details.ejs
 app.get('/movie/:id', (req, res) => {
     const movieId = req.params.id;
-    res.render('search_details', { movieId: movieId }); // Pass the movie ID to the EJS template
+    res.render('search_details', { movieId: movieId });
 });
-
-// Example placeholder routes for other EJS pages if they exist
-// app.get('/list', (req, res) => { res.render('list'); });
-// app.get('/about', (req, res) => { res.render('about'); });
-// app.get('/contact', (req, res) => { res.render('contact'); });
-// app.get('/faq', (req, res) => { res.render('faq'); });
-// app.get('/login', (req, res) => { res.render('login'); });
-// app.get('/register', (req, res) => { res.render('register'); });
 
 
 // --- API Endpoints ---
 
-// API Endpoint to Search for Movies (Fixed: Changed from '/search' to '/search-movies' to match frontend)
-app.post('/search-movies', async (req, res) => { // Renamed this route
-    const query = req.body.query; // Get the movie query from the request body
+// API Endpoint to Search for Movies
+app.post('/search-movies', async (req, res) => {
+    const query = req.body.query;
 
     if (!query) {
         return res.status(400).json({ error: 'Movie query is required.' });
     }
 
     try {
-        const response = await axios.get(`${TMDB_BASE_URL}/search/movie`, { // Corrected TMDB endpoint path
+        const response = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
             params: {
                 api_key: TMDB_API_KEY,
                 query: query,
@@ -105,9 +121,10 @@ app.post('/search-movies', async (req, res) => { // Renamed this route
             id: movie.id,
             title: movie.title,
             overview: movie.overview,
-            poster_path: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : '/images/default.png', // Fallback to your custom logo
+            poster_path: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : '/images/default.png',
             release_date: movie.release_date,
-            vote_average: movie.vote_average
+            vote_average: movie.vote_average,
+            genre_ids: movie.genre_ids
         }));
 
         res.json({ movies: movies });
@@ -124,7 +141,29 @@ app.post('/search-movies', async (req, res) => { // Renamed this route
     }
 });
 
-// API Endpoint to Get Detailed Movie Information
+// NEW API Endpoint to Get Movie Genres (for frontend mapping)
+app.get('/api/genres', async (req, res) => {
+    try {
+        const response = await axios.get(`${TMDB_BASE_URL}/genre/movie/list`, {
+            params: {
+                api_key: TMDB_API_KEY
+            }
+        });
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error fetching genres from TMDB:', error.message);
+        if (error.response) {
+            res.status(error.response.status).json({ error: 'Failed to fetch genres from TMDB API.', details: error.response.data });
+        } else if (error.request) {
+            res.status(500).json({ error: 'No response received from TMDB API.' });
+        } else {
+            res.status(500).json({ error: 'An unexpected error occurred.' });
+        }
+    }
+});
+
+
+// API Endpoint to Get Detailed Movie Information (Existing route)
 app.get('/api/movie-details/:id', async (req, res) => {
     const movieId = req.params.id;
 
@@ -133,45 +172,41 @@ app.get('/api/movie-details/:id', async (req, res) => {
     }
 
     try {
-        // Fetch movie details and append credits in a single request for efficiency
         const response = await axios.get(`${TMDB_BASE_URL}/movie/${movieId}`, {
             params: {
                 api_key: TMDB_API_KEY,
-                append_to_response: 'credits' // Request credits (cast and crew) along with details
+                append_to_response: 'credits'
             }
         });
 
         const movieData = response.data;
 
-        // Extract director(s)
         const directors = movieData.credits.crew
             .filter(crewMember => crewMember.job === 'Director')
             .map(director => director.name);
 
-        // Extract top 5 cast members (or fewer if less than 5)
         const cast = movieData.credits.cast
-            .sort((a, b) => a.order - b.order) // Sort by billing order
-            .slice(0, 5) // Take top 5
+            .sort((a, b) => a.order - b.order)
+            .slice(0, 5)
             .map(actor => ({
                 name: actor.name,
                 character: actor.character,
-                profile_path: actor.profile_path ? `${TMDB_IMAGE_BASE_URL}${actor.profile_path}` : null // Actor image
+                profile_path: actor.profile_path ? `${TMDB_IMAGE_BASE_URL}${actor.profile_path}` : null
             }));
 
-        // Prepare the detailed movie object for the frontend
         const detailedMovie = {
             id: movieData.id,
             title: movieData.title,
             overview: movieData.overview,
-            poster_path: movieData.poster_path ? `${TMDB_IMAGE_BASE_URL}${movieData.poster_path}` : '/images/your_logo_filename.png',
+            poster_path: movieData.poster_path ? `${TMDB_IMAGE_BASE_URL}${movieData.poster_path}` : '/images/default.png',
             backdrop_path: movieData.backdrop_path ? `${TMDB_IMAGE_BASE_URL}${movieData.backdrop_path}` : null,
             release_date: movieData.release_date,
             vote_average: movieData.vote_average,
-            runtime: movieData.runtime, // Movie runtime in minutes
-            genres: movieData.genres.map(genre => genre.name), // Array of genre names
+            runtime: movieData.runtime,
+            genres: movieData.genres.map(genre => genre.name),
             directors: directors,
             cast: cast,
-            tagline: movieData.tagline // Often a short, catchy phrase
+            tagline: movieData.tagline
         };
 
         res.json(detailedMovie);

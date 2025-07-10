@@ -5,7 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login to Your Account</title>
     <link href="/login.style.css" rel="stylesheet">
-    
+    <!-- Place this script in the <head> section of your EJS files (e.g., home.ejs, search.ejs, movie_details.ejs, login.ejs, register.ejs) -->
+<script type="module">
+    // Import Firebase services
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, query, where, addDoc, getDocs, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Global variables to hold Firebase instances and user state
+    let app;
+    let db;
+    let auth;
+    let userId = null; // Stores the current user's ID
+    let isAuthReady = false; // Flag to indicate if auth state has been checked
+
+    // Function to show a custom message box (re-using your existing function)
+    function showMessageBox(title, message) {
+        const messageBox = document.getElementById('messageBox');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageContent = document.getElementById('messageContent');
+        if (messageBox && messageTitle && messageContent) {
+            messageTitle.textContent = title;
+            messageContent.textContent = message;
+            messageBox.classList.add('show');
+        } else {
+            console.error("Message box elements not found:", title, message);
+        }
+    }
+
+    // Function to hide the custom message box (re-using your existing function)
+    function hideMessageBox() {
+        const messageBox = document.getElementById('messageBox');
+        if (messageBox) {
+            messageBox.classList.remove('show');
+        }
+    }
+
+    // Initialize Firebase and set up authentication
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Retrieve Firebase config from environment variable (Canvas provides __firebase_config)
+            // For local development, you'd use process.env.FIREBASE_CONFIG parsed on the server
+            const firebaseConfig = JSON.parse(`<%- firebaseConfig %>`);
+const appId = `<%- __app_id %>`;
+const initialAuthToken = `<%- __initial_auth_token %>`; // Fallback for local testing
+
+            if (Object.keys(firebaseConfig).length === 0) {
+                console.error("Firebase config is empty or not provided.");
+                showMessageBox('Firebase Error', 'Firebase configuration is missing. Please check your .env file or Canvas setup.');
+                return;
+            }
+
+            // Initialize Firebase App
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Set up authentication state listener
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    // User is signed in.
+                    userId = user.uid;
+                    console.log("Firebase: User signed in:", userId);
+                    // You might want to update UI elements here to show logged-in state
+                } else {
+                    // User is signed out.
+                    userId = null;
+                    console.log("Firebase: User signed out.");
+                    // You might want to update UI elements here to show logged-out state
+                }
+                isAuthReady = true; // Auth state has been determined
+                // Any Firestore operations that depend on auth state can now proceed
+            });
+
+            // Sign in with custom token if provided (from Canvas environment)
+            // Otherwise, sign in anonymously for basic access
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+                console.log("Firebase: Signed in with custom token.");
+            } else {
+                await signInAnonymously(auth);
+                console.log("Firebase: Signed in anonymously.");
+            }
+
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            showMessageBox('Firebase Error', `Failed to initialize Firebase: ${error.message}. Check your console.`);
+        }
+    });
+
+    // Attach hideMessageBox to the close button if it exists
+    const closeMessageBoxButton = document.getElementById('closeMessageBox');
+    if (closeMessageBoxButton) {
+        closeMessageBoxButton.addEventListener('click', hideMessageBox);
+    }
+
+    // Expose global variables for other scripts to use (optional, but convenient for EJS)
+    window.firebaseApp = app;
+    window.firestoreDb = db;
+    window.firebaseAuth = auth;
+    window.getUserId = () => userId; // Function to get current user ID
+    window.isAuthReady = () => isAuthReady; // Function to check if auth is ready
+</script>
+
 </head>
 <body>
     <nav class="navbar">
