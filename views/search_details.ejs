@@ -1,705 +1,496 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Movie Details</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 0;
-            padding-bottom: 2rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-        /* Navigation Bar Styles */
-        .navbar {
-            width: 100%;
-            background-color: #333;
-            padding: 1rem 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            margin-bottom: 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-        }
-        .nav-link {
-            color: #ffffff;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .nav-link:hover {
-            background-color: #555;
-            color: #fff;
-        }
-        /* Movie Details Container */
-        .movie-details-container {
-            width: 100%;
-            max-width: 1000px; /* Wider for details */
-            margin-left: auto;
-            margin-right: auto;
-            padding: 2rem;
-            background-color: #ffffff;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            margin-top: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        @media (min-width: 768px) {
-            .movie-details-container {
-                flex-direction: row; /* Row layout on larger screens */
-                text-align: left;
-                align-items: flex-start;
-            }
-        }
-
-        .movie-poster-large {
-            width: 100%;
-            max-width: 300px; /* Max width for poster */
-            height: auto;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
-        }
-
-        @media (min-width: 768px) {
-            .movie-poster-large {
-                margin-right: 2rem;
-                margin-bottom: 0;
-            }
-        }
-
-        .movie-info {
-            flex-grow: 1;
-        }
-
-        .movie-info h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 0.5rem;
-            text-align: center;
-        }
-        @media (min-width: 768px) {
-            .movie-info h1 {
-                text-align: left;
-            }
-        }
-
-        .movie-info .tagline {
-            font-style: italic;
-            color: #6b7280;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            text-align: center;
-        }
-        @media (min-width: 768px) {
-            .movie-info .tagline {
-                text-align: left;
-            }
-        }
-
-        .movie-info p {
-            font-size: 1rem;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-            color: #555;
-            text-align: center;
-        }
-        @media (min-width: 768px) {
-            .movie-info p {
-                text-align: left;
-            }
-        }
-
-        .movie-meta {
-            margin-top: 1.5rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: center;
-        }
-        @media (min-width: 768px) {
-            .movie-meta {
-                justify-content: flex-start;
-            }
-        }
-
-        .movie-meta span {
-            background-color: #e0e7ff;
-            color: #4f46e5;
-            padding: 0.4rem 0.8rem;
-            border-radius: 0.375rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .section-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            width: 100%; /* Ensure it spans full width */
-            text-align: center;
-        }
-        @media (min-width: 768px) {
-            .section-title {
-                text-align: left;
-            }
-        }
-
-        .cast-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 1rem;
-            width: 100%;
-            margin-top: 1rem;
-        }
-
-        .cast-member {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .cast-member img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .cast-member .name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #333;
-        }
-
-        .cast-member .character {
-            font-size: 0.8rem;
-            color: #6b7280;
-        }
-
-        .director-info {
-            margin-top: 1rem;
-            font-size: 1rem;
-            color: #333;
-            text-align: center;
-        }
-        .director-info strong {
-            color: #1f2937;
-        }
-
-        /* Watchlist Actions Container */
-        .watchlist-actions {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            width: 100%;
-        }
-
-        @media (min-width: 640px) {
-            .watchlist-actions {
-                flex-direction: row;
-                justify-content: center;
-            }
-        }
-
-        /* Status Dropdown */
-        .status-select {
-            padding: 0.75rem 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            background-color: #f9fafb;
-            color: #333;
-            appearance: none; /* Remove default arrow */
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%234B5563" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 0.7em top 50%, 0 0;
-            background-size: 0.65em auto, 100%;
-            cursor: pointer;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .status-select:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
-        }
-
-
-        /* Add to Watchlist Button */
-        .add-to-watchlist-button {
-            background-image: linear-gradient(to right, #28a745, #218838); /* Green gradient */
-            color: #ffffff;
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease, background-image 0.3s ease;
-            cursor: pointer;
-            border: none;
-            outline: none;
-            font-size: 1.1rem;
-            display: inline-flex; /* Use flex to center icon and text */
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .add-to-watchlist-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(40, 167, 69, 0.4);
-            background-image: linear-gradient(to right, #218838, #1e7e34); /* Darker green on hover */
-        }
-
-        .add-to-watchlist-button.added { /* Style when movie is already added */
-            background-image: linear-gradient(to right, #6c757d, #5a6268); /* Grey gradient */
-            cursor: default;
-        }
-
-        .add-to-watchlist-button.added:hover {
-            transform: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            background-image: linear-gradient(to right, #6c757d, #5a6268);
-        }
-
-        /* Custom Message Box styles (reused) */
-        .message-box {
-            background-color: #fff;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            display: none;
-            max-width: 400px;
-            width: 90%;
-            text-align: left;
-        }
-        .message-box.show {
-            display: block;
-        }
-        .message-box .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .message-box h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-        }
-        .message-box .close-button {
-            color: #6b7280;
-            font-size: 1.5rem;
-            font-weight: 700;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 0;
-            line-height: 1;
-            transition: color 0.2s;
-        }
-        .message-box .close-button:hover {
-            color: #374151;
-        }
-        .message-box p {
-            color: #374151;
-        }
-    </style>
-</head>
-<body>
+    <link href="/search_details.css" rel="stylesheet" />
+  </head>
+  <body>
     <nav class="navbar">
-        <div class="nav-container">
-            <a href="/" class="nav-link">Home</a>
-            <a href="/search" class="nav-link">Search Movies</a>
-            <a href="/user/list" class="nav-link">My Watchlist</a>
-            <a href="/about" class="nav-link">About</a>
-            <a href="/contact" class="nav-link">Contact</a>
-            <a href="/faq" class="nav-link">FAQ</a>
-            <a href="/user/profile" class ="nav-link">Profile</a>
-        </div>
+      <div class="nav-container">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/search" class="nav-link">Search Movies</a>
+        <a href="/user/list" class="nav-link">My Watchlist</a>
+        <a href="/about" class="nav-link">About</a>
+        <a href="/contact" class="nav-link">Contact</a>
+        <a href="/faq" class="nav-link">FAQ</a>
+        <a href="/user/profile" class="nav-link">Profile</a>
+      </div>
     </nav>
 
     <div class="movie-details-container">
-        <div id="loadingIndicator" style="text-align: center; width: 100%; font-size: 1.2rem; color: #6b7280;">
-            Loading movie details...
-        </div>
-        <div id="movieContent" style="display: none;">
-            <!-- Movie details will be dynamically loaded here -->
-            <img id="moviePoster" class="movie-poster-large" src="" alt="Movie Poster">
-            <div class="movie-info">
-                <h1 id="movieTitle"></h1>
-                <p id="movieTagline" class="tagline"></p>
-                <p id="movieOverview"></p>
-                <div class="movie-meta">
-                    <span id="movieRating"></span>
-                    <span id="movieReleaseDate"></span>
-                    <span id="movieRuntime"></span>
-                    <span id="movieGenres"></span>
-                </div>
+      <div
+        id="loadingIndicator"
+        style="
+          text-align: center;
+          width: 100%;
+          font-size: 1.2rem;
+          color: #6b7280;
+        "
+      >
+        Loading movie details...
+      </div>
+      <div id="movieContent" style="display: none">
+        <img
+          id="moviePoster"
+          class="movie-poster-large"
+          src=""
+          alt="Movie Poster"
+        />
+        <div class="movie-info">
+          <h1 id="movieTitle"></h1>
+          <p id="movieTagline" class="tagline"></p>
+          <p id="movieOverview"></p>
+          <div class="movie-meta">
+            <span id="movieRating"></span>
+            <span id="movieReleaseDate"></span>
+            <span id="movieRuntime"></span>
+            <span id="movieGenres"></span>
+          </div>
 
-                <h2 class="section-title">Director(s)</h2>
-                <p id="movieDirectors" class="director-info"></p>
+          <h2 class="section-title">Director(s)</h2>
+          <p id="movieDirectors" class="director-info"></p>
 
-                <h2 class="section-title">Top Cast</h2>
-                <div id="movieCast" class="cast-grid">
-                    <!-- Cast members will be injected here -->
-                </div>
-
-                <!-- Watchlist Actions -->
-                <div class="watchlist-actions">
-                    <select id="watchStatusSelect" class="status-select">
-                        <option value="Plan to Watch">Plan to Watch</option>
-                        <option value="Watching">Watching</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Dropped">Dropped</option>
-                    </select>
-                    <button id="addToWatchlistButton" class="add-to-watchlist-button">
-                        <span id="buttonText">Add to Watchlist</span>
-                    </button>
-                </div>
+          <h2 class="section-title">Top Cast</h2>
+          <div id="movieCast" class="cast-grid">
             </div>
+
+          <div class="watchlist-actions">
+            <select id="watchStatusSelect" class="status-select">
+              <option value="Plan to Watch">Plan to Watch</option>
+              <option value="Watching">Watching</option>
+              <option value="Completed">Completed</option>
+              <option value="Dropped">Dropped</option>
+            </select>
+            <button id="addToWatchlistButton" class="add-to-watchlist-button">
+              <span id="buttonText">Add to Watchlist</span>
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
-    <!-- Custom Message Box -->
     <div id="messageBox" class="message-box hidden">
-        <div class="header">
-            <h3 id="messageTitle"></h3>
-            <button id="closeMessageBox" class="close-button">&times;</button>
-        </div>
-        <p id="messageContent"></p>
+      <div class="header">
+        <h3 id="messageTitle"></h3>
+        <button id="closeMessageBox" class="close-button">&times;</button>
+      </div>
+      <p id="messageContent"></p>
     </div>
 
     <script type="module">
-        // Import Firebase services
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, where, addDoc, getDocs, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+      // Import Firebase services
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import {
+        getAuth,
+        signInAnonymously,
+        signInWithCustomToken,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        setDoc,
+        deleteDoc, // Import deleteDoc here
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Module-scoped variables for Firebase instances and user state
-        let app;
-        let db; // This will hold the Firestore instance
-        let auth;
-        let userId = null; // Stores the current user's ID
-        let isAuthReady = false; // Flag to indicate if auth state has been checked
-        let appId = 'default-app-id'; // Default, will be updated from EJS local variable
+      // Module-scoped variables for Firebase instances and user state
+      let app;
+      let db; // This will hold the Firestore instance
+      let auth;
+      let userId = null; // Stores the current user's ID
+      let isAuthReady = false; // Flag to indicate if auth state has been checked
+      let appId = "default-app-id"; // Default, will be updated from EJS local variable
 
-        // Get movie ID passed from the server
-        const movieId = "<%= movieId %>";
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const movieContent = document.getElementById('movieContent');
-        const moviePoster = document.getElementById('moviePoster');
-        const movieTitle = document.getElementById('movieTitle');
-        const movieTagline = document.getElementById('movieTagline');
-        const movieOverview = document.getElementById('movieOverview');
-        const movieRating = document.getElementById('movieRating');
-        const movieReleaseDate = document.getElementById('movieReleaseDate');
-        const movieRuntime = document.getElementById('movieRuntime');
-        const movieGenres = document.getElementById('movieGenres');
-        const movieDirectors = document.getElementById('movieDirectors');
-        const movieCast = document.getElementById('movieCast');
-        const addToWatchlistButton = document.getElementById('addToWatchlistButton');
-        const buttonText = document.getElementById('buttonText');
-        const watchStatusSelect = document.getElementById('watchStatusSelect'); // New dropdown
+      // Get movie ID passed from the server
+      const movieId = "<%= movieId %>";
+      const loadingIndicator = document.getElementById("loadingIndicator");
+      const movieContent = document.getElementById("movieContent");
+      const moviePoster = document.getElementById("moviePoster");
+      const movieTitle = document.getElementById("movieTitle");
+      const movieTagline = document.getElementById("movieTagline");
+      const movieOverview = document.getElementById("movieOverview");
+      const movieRating = document.getElementById("movieRating");
+      const movieReleaseDate = document.getElementById("movieReleaseDate");
+      const movieRuntime = document.getElementById("movieRuntime");
+      const movieGenres = document.getElementById("movieGenres");
+      const movieDirectors = document.getElementById("movieDirectors");
+      const movieCast = document.getElementById("movieCast");
+      const addToWatchlistButton = document.getElementById(
+        "addToWatchlistButton"
+      );
+      const buttonText = document.getElementById("buttonText");
+      const watchStatusSelect = document.getElementById("watchStatusSelect"); // New dropdown
 
-        let currentMovieData = null; // To store the fetched movie data for watchlist saving
+      let currentMovieData = null; // To store the fetched movie data for watchlist saving
 
-        // Function to show a custom message box
-        function showMessageBox(title, message) {
-            const messageBox = document.getElementById('messageBox');
-            const messageTitle = document.getElementById('messageTitle');
-            const messageContent = document.getElementById('messageContent');
-            if (messageBox && messageTitle && messageContent) {
-                messageTitle.textContent = title;
-                messageContent.textContent = message;
-                messageBox.classList.add('show');
-            } else {
-                console.error("Message box elements not found:", title, message);
-            }
+      // Function to show a custom message box
+      function showMessageBox(title, message) {
+        const messageBox = document.getElementById("messageBox");
+        const messageTitle = document.getElementById("messageTitle");
+        const messageContent = document.getElementById("messageContent");
+        if (messageBox && messageTitle && messageContent) {
+          messageTitle.textContent = title;
+          messageContent.textContent = message;
+          messageBox.classList.add("show");
+        } else {
+          console.error("Message box elements not found:", title, message);
+        }
+      }
+
+      // Function to hide the custom message box
+      function hideMessageBox() {
+        const messageBox = document.getElementById("messageBox");
+        if (messageBox) {
+          messageBox.classList.remove("show");
+        }
+      }
+
+      // Attach hideMessageBox to the close button
+      const closeMessageBoxButton = document.getElementById("closeMessageBox");
+      if (closeMessageBoxButton) {
+        closeMessageBoxButton.addEventListener("click", hideMessageBox);
+      }
+
+      /**
+       * Checks if the movie is in the watchlist and returns its current status.
+       * Does NOT change the dropdown value.
+       * @param {string} movieId The ID of the movie to check.
+       * @returns {Promise<string|null>} The status string if found, null otherwise.
+       */
+      async function getMovieStatusInWatchlist(movieId) {
+        if (!db || !userId) {
+          return null; // Not ready
         }
 
-        // Function to hide the custom message box
-        function hideMessageBox() {
-            const messageBox = document.getElementById('messageBox');
-            if (messageBox) {
-                messageBox.classList.remove('show');
-            }
+        const watchlistRef = doc(
+          db,
+          `artifacts/${appId}/users/${userId}/watchlist`,
+          String(movieId)
+        );
+
+        try {
+          const docSnap = await getDoc(watchlistRef);
+          if (docSnap.exists()) {
+            return docSnap.data().status || "Plan to Watch"; // Return the status
+          }
+          return null; // Not in watchlist
+        } catch (error) {
+          console.error("Error checking watchlist status:", error);
+          showMessageBox(
+            "Error",
+            "Could not check watchlist status. Please try again."
+          );
+          return null;
         }
+      }
 
-        // Attach hideMessageBox to the close button
-        const closeMessageBoxButton = document.getElementById('closeMessageBox');
-        if (closeMessageBoxButton) {
-            closeMessageBoxButton.addEventListener('click', hideMessageBox);
-        }
-
-        // Function to check if the movie is already in the user's watchlist
-        async function isMovieInWatchlist(movieId) {
-            // Ensure db and userId are available before proceeding
-            if (!db || !userId) {
-                console.log("Firestore DB or User ID not ready for watchlist check.");
-                return false;
+      // Function to update the watchlist button state (text and visibility)
+      async function updateWatchlistButton(maintainDropdownSelection = false) {
+        // Wait for auth to be ready and db to be initialized
+        await new Promise((resolve) => {
+          const checkReadyInterval = setInterval(() => {
+            if (isAuthReady && db) {
+              clearInterval(checkReadyInterval);
+              resolve();
             }
-
-            // Use the module-scoped db and appId directly
-            const watchlistRef = doc(db, `artifacts/${appId}/users/${userId}/watchlist`, String(movieId));
-
-            try {
-                const docSnap = await getDoc(watchlistRef);
-                if (docSnap.exists()) {
-                    // Set the dropdown to the current status if the movie is found
-                    const movieStatus = docSnap.data().status || 'Plan to Watch'; // Default if status is missing
-                    watchStatusSelect.value = movieStatus;
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error("Error checking watchlist status:", error);
-                showMessageBox('Error', 'Could not check watchlist status. Please try again.');
-                return false;
-            }
-        }
-
-        // Function to update the watchlist button state
-        async function updateWatchlistButton() {
-            // Wait for auth to be ready and db to be initialized
-            await new Promise(resolve => {
-                const checkReadyInterval = setInterval(() => {
-                    if (isAuthReady && db) { // Check both auth ready and db initialized
-                        clearInterval(checkReadyInterval);
-                        resolve();
-                    }
-                }, 100);
-            });
-
-            if (userId) { // Check the module-scoped userId
-                addToWatchlistButton.style.display = 'inline-flex'; // Show button if logged in
-                watchStatusSelect.style.display = 'inline-block'; // Show status select
-                const isInWatchlist = await isMovieInWatchlist(movieId);
-                if (isInWatchlist) {
-                    buttonText.textContent = 'Update Watchlist'; // Change button text
-                    addToWatchlistButton.classList.add('added');
-                } else {
-                    buttonText.textContent = 'Add to Watchlist';
-                    addToWatchlistButton.classList.remove('added');
-                    watchStatusSelect.value = 'Plan to Watch'; // Reset to default when not added
-                }
-            } else {
-                addToWatchlistButton.style.display = 'none'; // Hide button if not logged in
-                watchStatusSelect.style.display = 'none'; // Hide status select
-            }
-        }
-
-        // Function to add/remove movie from watchlist
-        async function toggleWatchlist() {
-            if (!userId) { // Check the module-scoped userId
-                showMessageBox('Authentication Required', 'Please log in to add movies to your watchlist.');
-                return;
-            }
-
-            if (!currentMovieData) {
-                showMessageBox('Error', 'Movie data not loaded yet. Please try again.');
-                return;
-            }
-
-            // Use the module-scoped db and appId directly
-            const watchlistRef = doc(db, `artifacts/${appId}/users/${userId}/watchlist`, String(movieId));
-            const selectedStatus = watchStatusSelect.value; // Get selected status
-
-            try {
-                const isInWatchlist = await isMovieInWatchlist(movieId);
-
-                if (isInWatchlist) {
-                    // Update existing movie's status
-                    await setDoc(watchlistRef, {
-                        status: selectedStatus,
-                        updated_at: new Date() // Add an update timestamp
-                    }, { merge: true }); // Use merge to only update specified fields
-                    showMessageBox('Watchlist Updated', `${currentMovieData.title} status updated to "${selectedStatus}".`);
-                } else {
-                    // Add to watchlist
-                    await setDoc(watchlistRef, {
-                        id: currentMovieData.id,
-                        title: currentMovieData.title,
-                        poster_path: currentMovieData.poster_path,
-                        release_date: currentMovieData.release_date, // Store release date for sorting
-                        vote_average: currentMovieData.vote_average,
-                        overview: currentMovieData.overview,
-                        status: selectedStatus, // Save the selected status
-                        added_at: new Date() // Timestamp when added
-                    });
-                    showMessageBox('Watchlist Updated', `${currentMovieData.title} added to your watchlist as "${selectedStatus}"!`);
-                }
-                updateWatchlistButton(); // Update button state after action
-            } catch (error) {
-                console.error("Error toggling watchlist:", error);
-                showMessageBox('Error', `Failed to update watchlist: ${error.message}`);
-            }
-        }
-
-        addToWatchlistButton.addEventListener('click', toggleWatchlist);
-
-
-        async function fetchMovieDetails() {
-            if (!movieId) {
-                showMessageBox('Error', 'Movie ID is missing.');
-                loadingIndicator.style.display = 'none';
-                return;
-            }
-
-            try {
-                const response = await fetch(`${window.location.origin}/api/movie-details/${movieId}`);
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to fetch movie details.');
-                }
-                const movie = await response.json();
-                currentMovieData = movie; // Store fetched movie data for watchlist saving
-
-                // Populate movie details
-                movieTitle.textContent = movie.title;
-                movieTagline.textContent = movie.tagline || '';
-                movieOverview.textContent = movie.overview || 'No overview available.';
-                movieRating.textContent = movie.vote_average ? `Rating: ${movie.vote_average.toFixed(1)} / 10` : 'Rating: N/A';
-                movieReleaseDate.textContent = movie.release_date ? `Released: ${movie.release_date}` : 'Release Date: N/A';
-                movieRuntime.textContent = movie.runtime ? `Runtime: ${movie.runtime} min` : 'Runtime: N/A';
-                movieGenres.textContent = movie.genres && movie.genres.length > 0 ? `Genres: ${movie.genres.join(', ')}` : 'Genres: N/A';
-
-                moviePoster.src = movie.poster_path;
-                moviePoster.alt = movie.title + " Poster";
-                moviePoster.onerror = function() {
-                    this.onerror = null;
-                    this.src = '/images/your_logo_filename.png'; // Fallback to your custom logo
-                };
-
-                // Populate directors
-                if (movie.directors && movie.directors.length > 0) {
-                    movieDirectors.textContent = `Directed by: ${movie.directors.join(', ')}`;
-                } else {
-                    movieDirectors.textContent = 'Director(s): N/A';
-                }
-
-                // Populate cast
-                movieCast.innerHTML = ''; // Clear previous cast
-                if (movie.cast && movie.cast.length > 0) {
-                    movie.cast.forEach(actor => {
-                        const actorDiv = document.createElement('div');
-                        actorDiv.classList.add('cast-member');
-
-                        const actorImg = document.createElement('img');
-                        actorImg.src = actor.profile_path || 'https://placehold.co/80x80/cccccc/333333?text=No+Pic'; // Placeholder for actor image
-                        actorImg.alt = actor.name;
-                        actorImg.onerror = function() {
-                            this.onerror = null;
-                            this.src = 'https://placehold.co/80x80/cccccc/333333?text=No+Pic';
-                        };
-
-                        const actorName = document.createElement('p');
-                        actorName.classList.add('name');
-                        actorName.textContent = actor.name;
-
-                        const actorCharacter = document.createElement('p');
-                        actorCharacter.classList.add('character');
-                        actorCharacter.textContent = actor.character;
-
-                        actorDiv.appendChild(actorImg);
-                        actorDiv.appendChild(actorName);
-                        actorDiv.appendChild(actorCharacter);
-                        movieCast.appendChild(actorDiv);
-                    });
-                } else {
-                    movieCast.innerHTML = '<p style="width:100%; text-align:center; color:#6b7280;">No cast information available.</p>';
-                }
-
-                loadingIndicator.style.display = 'none';
-                movieContent.style.display = 'flex'; // Show content
-
-                // After movie details are loaded, update the watchlist button status
-                updateWatchlistButton();
-
-            } catch (error) {
-                console.error('Error loading movie details:', error);
-                showMessageBox('Error', `Could not load movie details: ${error.message}`);
-                loadingIndicator.style.display = 'none';
-                movieContent.style.display = 'none'; // Hide content if error
-            }
-        }
-
-        // Initialize Firebase and set up authentication
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                // Get Firebase config and Canvas globals from EJS local variables
-                const firebaseConfig = JSON.parse(`<%- firebaseConfig %>`);
-                const initialAuthToken = `<%- __initial_auth_token %>`;
-                appId = `<%- __app_id %>`; // Assign to module-scoped appId
-
-                if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey || !firebaseConfig.authDomain) {
-                    console.error("Firebase config is empty or missing critical properties (apiKey, authDomain).");
-                    showMessageBox('Firebase Error', 'Firebase configuration is missing or incomplete. Please check your server setup and .env file.');
-                    return;
-                }
-
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app); // Assign to module-scoped db
-                auth = getAuth(app); // Assign to module-scoped auth
-
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid; // Assign to module-scoped userId
-                        console.log("Firebase: User signed in:", userId);
-                    } else {
-                        userId = null; // Assign to module-scoped userId
-                        console.log("Firebase: User signed out.");
-                    }
-                    isAuthReady = true; // Auth state has been determined
-                    fetchMovieDetails(); // Call after auth state is determined
-                });
-
-                if (initialAuthToken && initialAuthToken !== 'null') {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Firebase: Signed in with custom token.");
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("Firebase: Signed in anonymously.");
-                }
-
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                showMessageBox('Firebase Error', `Failed to initialize Firebase: ${error.message}. Check your console.`);
-            }
+          }, 100);
         });
+
+        if (userId) {
+          addToWatchlistButton.style.display = "inline-flex"; // Show button if logged in
+          watchStatusSelect.style.display = "inline-block"; // Show status select
+
+          const currentSavedStatus = await getMovieStatusInWatchlist(movieId);
+
+          if (currentSavedStatus) {
+            // Movie IS in watchlist
+            buttonText.textContent = "Remove from Watchlist"; // Change button text to remove
+            addToWatchlistButton.classList.add("added"); // Add a class for styling (e.g., red)
+            watchStatusSelect.disabled = false; // Enable dropdown
+
+            // Only update dropdown if we are NOT trying to maintain a user's selection
+            if (!maintainDropdownSelection) {
+              watchStatusSelect.value = currentSavedStatus;
+            }
+          } else {
+            // Movie IS NOT in watchlist
+            buttonText.textContent = "Add to Watchlist";
+            addToWatchlistButton.classList.remove("added");
+            watchStatusSelect.value = "Plan to Watch"; // Reset to default when not added
+            watchStatusSelect.disabled = false; // Enable dropdown
+          }
+        } else {
+          addToWatchlistButton.style.display = "none"; // Hide button if not logged in
+          watchStatusSelect.style.display = "none"; // Hide status select
+          watchStatusSelect.disabled = true; // Disable dropdown if not logged in
+        }
+      }
+
+      // Function to add/update/remove movie from watchlist
+      async function toggleWatchlist() {
+        if (!userId) {
+          showMessageBox(
+            "Authentication Required",
+            "Please log in to manage your watchlist."
+          );
+          return;
+        }
+
+        if (!currentMovieData) {
+          showMessageBox("Error", "Movie data not loaded yet. Please try again.");
+          return;
+        }
+
+        const watchlistRef = doc(
+          db,
+          `artifacts/${appId}/users/${userId}/watchlist`,
+          String(movieId)
+        );
+        const selectedStatus = watchStatusSelect.value; // Get selected status chosen by user
+
+        try {
+          const currentSavedStatus = await getMovieStatusInWatchlist(movieId); // Get actual saved status
+
+          if (currentSavedStatus) {
+            // Movie is currently IN the watchlist
+            // If the button text is "Remove from Watchlist", perform removal
+            if (buttonText.textContent === "Remove from Watchlist") {
+              await deleteDoc(watchlistRef);
+              showMessageBox(
+                "Removed",
+                `${currentMovieData.title} has been removed from your watchlist.`
+              );
+              // After removal, the dropdown should revert to default and button to "Add"
+              await updateWatchlistButton(false); // Do not maintain selection
+            } else {
+              // Otherwise, the button says "Update Watchlist" (or "Add to Watchlist" unexpectedly)
+              // This implies an update action.
+              await setDoc(
+                watchlistRef,
+                {
+                  status: selectedStatus, // Use the selected status
+                  updated_at: new Date(), // Add an update timestamp
+                },
+                { merge: true }
+              );
+              showMessageBox(
+                "Watchlist Updated",
+                `${currentMovieData.title} status updated to "${selectedStatus}".`
+              );
+              // After update, button should become "Remove", dropdown should reflect *just saved* status
+              await updateWatchlistButton(true); // Maintain current dropdown selection
+            }
+          } else {
+            // Movie is NOT in the watchlist, so add it.
+            await setDoc(watchlistRef, {
+              id: currentMovieData.id,
+              title: currentMovieData.title,
+              poster_path: currentMovieData.poster_path,
+              release_date: currentMovieData.release_date, // Store release date for sorting
+              vote_average: currentMovieData.vote_average,
+              overview: currentMovieData.overview,
+              status: selectedStatus, // Save the selected status
+              added_at: new Date(), // Timestamp when added
+            });
+            showMessageBox(
+              "Watchlist Updated",
+              `${currentMovieData.title} added to your watchlist as "${selectedStatus}"!`
+            );
+            // After adding, button should become "Remove", dropdown should reflect *just added* status
+            await updateWatchlistButton(true); // Maintain current dropdown selection
+          }
+        } catch (error) {
+          console.error("Error toggling watchlist:", error);
+          showMessageBox(
+            "Error",
+            `Failed to update watchlist: ${error.message}`
+          );
+        }
+      }
+
+      // Add a listener to the select dropdown to change button text to "Update"
+      watchStatusSelect.addEventListener("change", async () => {
+        const currentSavedStatus = await getMovieStatusInWatchlist(movieId);
+        // If movie is in watchlist AND the newly selected status is different from saved status
+        if (currentSavedStatus && watchStatusSelect.value !== currentSavedStatus) {
+            buttonText.textContent = "Update Watchlist";
+            addToWatchlistButton.classList.add("added"); // Keep the 'added' class
+        } else if (currentSavedStatus && watchStatusSelect.value === currentSavedStatus) {
+            // If movie is in watchlist and selected status is the same as saved status,
+            // revert button to "Remove from Watchlist"
+            buttonText.textContent = "Remove from Watchlist";
+            addToWatchlistButton.classList.add("added");
+        } else {
+            // If movie is NOT in watchlist, and user changes dropdown, button remains "Add to Watchlist"
+            buttonText.textContent = "Add to Watchlist";
+            addToWatchlistButton.classList.remove("added");
+        }
+      });
+
+
+      addToWatchlistButton.addEventListener("click", toggleWatchlist);
+
+      async function fetchMovieDetails() {
+        if (!movieId) {
+          showMessageBox("Error", "Movie ID is missing.");
+          loadingIndicator.style.display = "none";
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `${window.location.origin}/api/movie-details/${movieId}`
+          );
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to fetch movie details.");
+          }
+          const movie = await response.json();
+          currentMovieData = movie; // Store fetched movie data for watchlist saving
+
+          // Populate movie details
+          movieTitle.textContent = movie.title;
+          movieTagline.textContent = movie.tagline || "";
+          movieOverview.textContent = movie.overview || "No overview available.";
+          movieRating.textContent = movie.vote_average
+            ? `Rating: ${movie.vote_average.toFixed(1)} / 10`
+            : "Rating: N/A";
+          movieReleaseDate.textContent = movie.release_date
+            ? `Released: ${movie.release_date}`
+            : "Release Date: N/A";
+          movieRuntime.textContent = movie.runtime
+            ? `Runtime: ${movie.runtime} min`
+            : "Runtime: N/A";
+          movieGenres.textContent =
+            movie.genres && movie.genres.length > 0
+              ? `Genres: ${movie.genres.join(", ")}`
+              : "Genres: N/A";
+
+          moviePoster.src = movie.poster_path;
+          moviePoster.alt = movie.title + " Poster";
+          moviePoster.onerror = function () {
+            this.onerror = null;
+            this.src = "/images/default.png"; // Fallback to your custom logo (adjust path if needed)
+          };
+
+          // Populate directors
+          if (movie.directors && movie.directors.length > 0) {
+            movieDirectors.textContent = `Directed by: ${movie.directors.join(
+              ", "
+            )}`;
+          } else {
+            movieDirectors.textContent = "Director(s): N/A";
+          }
+
+          // Populate cast
+          movieCast.innerHTML = ""; // Clear previous cast
+          if (movie.cast && movie.cast.length > 0) {
+            movie.cast.forEach((actor) => {
+              const actorDiv = document.createElement("div");
+              actorDiv.classList.add("cast-member");
+
+              const actorImg = document.createElement("img");
+              actorImg.src =
+                actor.profile_path ||
+                "https://placehold.co/80x80/cccccc/333333?text=No+Pic"; // Placeholder for actor image
+              actorImg.alt = actor.name;
+              actorImg.onerror = function () {
+                this.onerror = null;
+                this.src =
+                  "https://placehold.co/80x80/cccccc/333333?text=No+Pic";
+              };
+
+              const actorName = document.createElement("p");
+              actorName.classList.add("name");
+              actorName.textContent = actor.name;
+
+              const actorCharacter = document.createElement("p");
+              actorCharacter.classList.add("character");
+              actorCharacter.textContent = actor.character;
+
+              actorDiv.appendChild(actorImg);
+              actorDiv.appendChild(actorName);
+              actorDiv.appendChild(actorCharacter);
+              movieCast.appendChild(actorDiv);
+            });
+          } else {
+            movieCast.innerHTML =
+              '<p style="width:100%; text-align:center; color:#6b7280;">No cast information available.</p>';
+          }
+
+          loadingIndicator.style.display = "none";
+          movieContent.style.display = "flex"; // Show content
+
+          // After movie details are loaded, update the watchlist button status
+          updateWatchlistButton(false); // When fetching, always load saved status into dropdown
+        } catch (error) {
+          console.error("Error loading movie details:", error);
+          showMessageBox(
+            "Error",
+            `Could not load movie details: ${error.message}`
+          );
+          loadingIndicator.style.display = "none";
+          movieContent.style.display = "none"; // Hide content if error
+        }
+      }
+
+      // Initialize Firebase and set up authentication
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          // Get Firebase config and Canvas globals from EJS local variables
+          const firebaseConfig = JSON.parse(`<%- firebaseConfig %>`);
+          const initialAuthToken = `<%- __initial_auth_token %>`;
+          appId = `<%- __app_id %>`; // Assign to module-scoped appId
+
+          if (
+            Object.keys(firebaseConfig).length === 0 ||
+            !firebaseConfig.apiKey ||
+            !firebaseConfig.authDomain
+          ) {
+            console.error(
+              "Firebase config is empty or missing critical properties (apiKey, authDomain)."
+            );
+            showMessageBox(
+              "Firebase Error",
+              "Firebase configuration is missing or incomplete. Please check your server setup and .env file."
+            );
+            return;
+          }
+
+          app = initializeApp(firebaseConfig);
+          db = getFirestore(app); // Assign to module-scoped db
+          auth = getAuth(app); // Assign to module-scoped auth
+
+          onAuthStateChanged(auth, async (user) => {
+            if (user) {
+              userId = user.uid; // Assign to module-scoped userId
+              console.log("Firebase: User signed in:", userId);
+            } else {
+              userId = null; // Assign to module-scoped userId
+              console.log("Firebase: User signed out.");
+            }
+            isAuthReady = true; // Auth state has been determined
+            fetchMovieDetails(); // Call after auth state is determined
+          });
+
+          if (initialAuthToken && initialAuthToken !== "null") {
+            await signInWithCustomToken(auth, initialAuthToken);
+            console.log("Firebase: Signed in with custom token.");
+          } else {
+            await signInAnonymously(auth);
+            console.log("Firebase: Signed in anonymously.");
+          }
+        } catch (error) {
+          console.error("Firebase initialization failed:", error);
+          showMessageBox(
+            "Firebase Error",
+            `Failed to initialize Firebase: ${error.message}. Check your console.`
+          );
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

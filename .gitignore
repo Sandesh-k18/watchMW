@@ -3,4 +3,5 @@ node_modules/
 public/movies.js
 Credentials.txt
 serverSearch.js
+config/serviceKey.json
 

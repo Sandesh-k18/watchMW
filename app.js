@@ -6,8 +6,38 @@ const axios = require("axios"); // For making HTTP requests to TMDB
 const path = require("path"); // For handling file paths
 const cookieParser = require("cookie-parser"); // For handling cookies
 
+
 // Initialize Express app
 const app = express();
+// ... other imports (path, admin, etc.)
+
+// --- IMPORTANT: Add these middleware lines ---
+app.use(express.json()); // This middleware parses JSON request bodies
+app.use(express.urlencoded({ extended: true })); // This middleware parses URL-encoded bodies (good practice for forms)
+// --- End important middleware ---
+
+
+// app.js
+const admin = require('firebase-admin');
+
+// Ensure you have your service account key file
+const serviceAccount = require('./config/serviceKey.json'); // <-- IMPORTANT: Adjust this path!
+
+// Initialize Firebase Admin SDK once
+if (!admin.apps.length) { // Prevents re-initialization in development
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        // If you were using Realtime Database, you'd add databaseURL here
+        // databaseURL: "https://your-project-id.firebaseio.com"
+    });
+}
+
+const db = admin.firestore(); // Get Firestore instance
+
+
+
+
+// ... rest of your server setup, Firebase initialization, etc.
 
 // Database connection (assuming connectToDB is defined in ./config/db)
 // If you have a db.js file for MongoDB, keep this line.
@@ -99,8 +129,27 @@ app.get("/movie/:id", (req, res) => {
 });
 
 // User Watchlist Page
-app.get("/user/list", (req, res) => {
-  res.render("list");
+// In your app.js or the file containing the Express route for your list page
+
+app.get('/user/list', async (req, res) => { // Or whatever path renders your list.ejs
+    let movies = []; // Initialize movies as an empty array by default
+
+    try {
+        const moviesSnapshot = await db.collection('movies').orderBy('added_at', 'desc').get();
+        movies = moviesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Ensure you are passing the 'movies' variable to your EJS template
+        res.render('list', { movies: movies });
+
+    } catch (error) {
+        console.error("Error fetching movies for list page:", error);
+        // If there's an error fetching from Firestore, render the page
+        // with an empty movies array or a specific error message.
+        res.status(500).render('list', {
+            movies: [], // Still pass an empty array to avoid 'movies is not defined'
+            errorMessage: 'Could not load movies at this time.'
+        });
+    }
 });
 
 // User Login Page
@@ -276,6 +325,37 @@ app.get("/api/user/watchlist", async (req, res) => {
       message:
         "This endpoint is a placeholder. Watchlist fetching is handled client-side for now.",
     });
+});
+
+
+app.post('/movies/add-manual', async (req, res) => {
+    // ... (the backend code I provided previously)
+    const { title, year } = req.body; // This will now work thanks to express.json()
+    if (!title) {
+        return res.status(400).json({ message: 'Movie title is required.' });
+    }
+    try {
+        const newMovieRef = db.collection('movies').doc();
+        const movieData = {
+            id: newMovieRef.id,
+            title: title,
+            release_date: year ? `${year}-01-01` : null,
+            year: year ? parseInt(year, 10) : null,
+            added_at: admin.firestore.Timestamp.now(),
+            isManual: true,
+            type: 'movie',
+            poster_path: null,
+            overview: 'Manually added entry.',
+            vote_average: 0,
+            genre_ids: [],
+            genre: [],
+        };
+        await newMovieRef.set(movieData);
+        res.status(201).json({ message: 'Movie added successfully!', movie: movieData });
+    } catch (error) {
+        console.error('Error adding movie manually to Firestore:', error);
+        res.status(500).json({ message: 'Failed to add movie.', error: error.message });
+    }
 });
 
 // --- Server Start ---

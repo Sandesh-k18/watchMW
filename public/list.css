@@ -1,284 +1,595 @@
-/* Base styles - consistent with other EJS files */
+/* Import Google Font - Inter */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+/* --- Base Styles --- */
 body {
   font-family: "Inter", sans-serif;
-  background-color: #f0f2f5;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f7f6; /* Light background */
   color: #333;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 0; /* Adjusted for fixed nav */
-  padding-bottom: 2rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  line-height: 1.6;
 }
 
-/* Navigation Bar Styles */
-.navbar {
-  width: 100%;
-  background-color: #333;
-  padding: 1rem 0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  margin-bottom: 2rem;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
 }
+
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 30px;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+/* --- Navigation Bar --- */
+.navbar {
+  background-color: #2c3e50; /* Darker blue/grey */
+  padding: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .nav-container {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  justify-content: center;
-  gap: 2rem;
+  justify-content: center; /* Center nav links */
+  gap: 20px;
+  padding: 0 20px;
+  flex-wrap: wrap; /* Allow nav items to wrap on smaller screens */
 }
+
 .nav-link {
-  color: #ffffff;
+  color: #ecf0f1; /* Light grey/blue */
   text-decoration: none;
   font-weight: 600;
   padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
+  border-radius: 5px;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
-.nav-link:hover {
-  background-color: #555;
-  color: #fff;
+
+.nav-link:hover,
+.nav-link.active {
+  background-color: #34495e; /* Slightly lighter on hover */
+  color: #ffffff;
 }
 
-/* Container styles */
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 1.5rem;
-  background-color: #ffffff;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  margin-bottom: 2rem;
-  margin-top: 2rem; /* Added margin-top to push content below sticky nav */
-}
-
-h1 {
-  font-size: 2.25rem;
-  font-weight: 700;
-  text-align: center;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
-}
-
+/* --- Loading and Auth Prompt --- */
 .loading-indicator,
+.auth-prompt,
 .no-content-message {
   text-align: center;
-  color: #4b5563;
-  font-size: 1.125rem;
-  margin-top: 2rem;
+  padding: 20px;
+  margin: 30px auto;
+  background-color: #e0f2f7; /* Light blue */
+  border: 1px solid #b2ebf2;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  color: #2196f3;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.auth-prompt h2 {
+  color: #1976d2;
+  margin-top: 0;
+  font-size: 1.8rem;
+}
+
+.auth-prompt p {
+  color: #424242;
+  margin-bottom: 20px;
+}
+
+.auth-links a {
+  display: inline-block;
+  background-color: #42a5f5; /* Blue */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  margin: 0 10px;
+  transition: background-color 0.3s ease;
+}
+
+.auth-links a:hover {
+  background-color: #1e88e5; /* Darker blue on hover */
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
-/* Watchlist Grid (similar to search results) */
-.watchlist-grid {
+/* --- Watchlist Controls (Sort, Filter, Buttons) --- */
+.watchlist-controls {
+  display: flex;
+  flex-wrap: wrap; /* Allow items to wrap to the next line */
+  gap: 15px; /* Spacing between controls */
+  justify-content: center; /* Center controls */
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #ffffff; /* White background */
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08); /* More prominent shadow */
+}
+
+/* --- Dropdown Selects --- */
+.control-select {
+  padding: 0.65rem 1rem;
+  border: 1px solid #d1d5db; /* Light grey border */
+  border-radius: 0.5rem; /* Rounded corners */
+  font-size: 1rem;
+  line-height: 1.5;
+  background-color: #fff;
+  color: #333;
+  /* Custom arrow for cross-browser consistency */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%234B5563" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 0.7em top 50%, 0 0;
+  background-size: 0.65em auto, 100%;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  flex-grow: 1; /* Allow selects to grow within flex container */
+  max-width: 250px; /* Limit max width */
+}
+
+.control-select:focus {
+  border-color: #6366f1; /* Tailwind-like blue on focus */
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5); /* Focus ring */
+}
+
+/* --- Buttons --- */
+.btn {
+  padding: 0.65rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.2s ease;
+  white-space: nowrap; /* Prevent button text from wrapping */
+  display: flex; /* Use flex to align content if needed */
+  align-items: center;
+  justify-content: center;
+  text-decoration: none; /* Remove underline from anchor inside button */
+  color: inherit; /* Inherit color for anchor inside button */
+}
+
+.btn-primary {
+  background-color: #3498db; /* Blue */
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9; /* Darker blue */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-success {
+  background-color: #2ecc71; /* Green */
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #27ae60; /* Darker green */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary {
+    background-color: #6c757d; /* Grey */
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268; /* Darker grey */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-danger {
+  background-color: #e74c3c; /* Red */
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c0392b; /* Darker red */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Specific styling for the anchor within Search button */
+#addBySearchBtn a {
+  text-decoration: none;
+  color: inherit;
+  display: block; /* Make the anchor fill the button */
+  padding: 0; /* Remove default padding from anchor */
+}
+
+/* --- Movie List Container --- */
+.movie-list-container {
   display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 25px;
+  padding: 20px 0;
 }
 
-@media (min-width: 640px) {
-  .watchlist-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 768px) {
-  .watchlist-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .watchlist-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-/* Movie card styles - consistent with search.ejs */
+/* --- Movie Card --- */
 .movie-card {
   background-color: #ffffff;
-  border-radius: 0.75rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease-in-out;
-  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
-  flex-direction: column;
-  height: 100%;
+  flex-direction: column; /* Stack content vertically */
+  height: 100%; /* Ensure cards are same height in a row */
 }
 
 .movie-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.movie-card.selected {
+  outline: 3px solid #6366f1; /* Highlight selected cards */
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+}
+
+.card-link {
+  display: block; /* Make the entire card clickable */
+  text-decoration: none;
+  color: inherit;
+  flex-grow: 1; /* Allow link content to grow */
+  display: flex;
+  flex-direction: column;
 }
 
 .poster-image {
   width: 100%;
-  height: 250px;
-  object-fit: cover;
-  border-radius: 0.5rem;
+  height: 300px; /* Fixed height for posters */
+  object-fit: cover; /* Crop to fit */
+  border-bottom: 1px solid #eee;
   display: block;
 }
 
+.custom-manual-poster {
+  object-fit: contain; /* Contain for default image */
+  background-color: #f0f2f5; /* Light background for default image */
+}
+
 .movie-info-summary {
-  padding: 1rem;
-  text-align: center;
-  flex-grow: 1;
+  padding: 15px;
+  flex-grow: 1; /* Allow info to take remaining space */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: space-between; /* Push year to bottom if content varies */
 }
 
 .movie-info-summary h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  margin: 0 0 8px 0;
+  color: #2c3e50;
   line-height: 1.3;
-}
-.movie-info-summary h2 a {
-  text-decoration: none;
-  color: #111827;
-  transition: color 0.2s ease;
-}
-.movie-info-summary h2 a:hover {
-  color: #6366f1;
+  min-height: 2.6em; /* Ensure consistent height for titles */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit title to 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.movie-info-summary p.genre-year {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
-  margin-bottom: 0.5rem;
+.movie-info-summary .release-year {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-top: auto; /* Push to bottom */
 }
 
-/* Hover Overlay for Overview - for consistency, though not strictly needed on watchlist unless desired */
 .movie-overview-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  box-sizing: border-box;
+  padding: 20px;
   opacity: 0;
   transition: opacity 0.3s ease;
-  pointer-events: none;
-  border-radius: 0.75rem;
+  pointer-events: none; /* Allow clicks to pass through when hidden */
+  box-sizing: border-box;
   text-align: center;
-  overflow: hidden;
 }
 
 .movie-card:hover .movie-overview-overlay {
   opacity: 1;
-  pointer-events: auto;
+  pointer-events: auto; /* Enable clicks when visible */
 }
 
 .movie-overview-overlay p {
-  font-size: 0.9rem;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 8;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.95rem;
+  max-height: 90%;
+  overflow-y: auto;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
-/* Authentication Prompt Styles */
-.auth-prompt {
-  text-align: center;
-  margin-top: 4rem;
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 0.75rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+.movie-overview-overlay p::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
-.auth-prompt h2 {
-  font-size: 1.8rem;
-  color: #1f2937;
-  margin-bottom: 1rem;
+
+/* --- Checkbox and Status Badge --- */
+.checkbox-container {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
-.auth-prompt p {
-  font-size: 1.1rem;
-  color: #555;
-  margin-bottom: 1.5rem;
+
+.checkbox-container input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #3498db; /* Blue checkmark */
 }
-.auth-prompt .auth-links a {
-  display: inline-block;
-  background-image: linear-gradient(to right, #6366f1, #8b5cf6);
-  color: #ffffff;
+
+.status-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #3498db; /* Default status color */
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.85rem;
   font-weight: 600;
-  padding: 0.8rem 1.8rem;
-  border-radius: 0.5rem;
-  text-decoration: none;
-  margin: 0 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.auth-prompt .auth-links a:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(99, 102, 241, 0.4);
+  z-index: 5;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Custom Message Box styles (reused) */
+/* Status specific colors */
+.plan-to-watch {
+  background-color: #3498db; /* Blue */
+}
+.watching {
+  background-color: #f39c12; /* Orange */
+}
+.completed {
+  background-color: #27ae60; /* Green */
+}
+.dropped {
+  background-color: #e74c3c; /* Red */
+}
+
+/* --- Message Box --- */
 .message-box {
-  background-color: #fff;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1000;
-  display: none;
-  max-width: 400px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   width: 90%;
-  text-align: left;
+  max-width: 400px;
+  z-index: 1001;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
+
 .message-box.show {
-  display: block;
+  opacity: 1;
+  visibility: visible;
 }
+
 .message-box .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  background-color: #f7f7f7;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
-.message-box h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
+
+.message-box .header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.3rem;
 }
+
 .message-box .close-button {
-  color: #6b7280;
-  font-size: 1.5rem;
-  font-weight: 700;
-  cursor: pointer;
   background: none;
   border: none;
-  padding: 0;
+  font-size: 1.5rem;
+  color: #aaa;
+  cursor: pointer;
+  padding: 0 5px;
   line-height: 1;
-  transition: color 0.2s;
 }
+
 .message-box .close-button:hover {
-  color: #374151;
+  color: #333;
 }
+
 .message-box p {
-  color: #374151;
+  padding: 20px;
+  margin: 0;
+  color: #555;
+  font-size: 1rem;
+}
+
+/* --- Modal Styles (Manual Add) --- */
+.modal {
+  display: none; /* Controlled by JS */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+  display: flex; /* Use flex to center content */
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: auto; /* Centered by flex */
+  padding: 25px;
+  border: 1px solid #888;
+  width: 90%;
+  max-width: 550px;
+  border-radius: 10px;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out forwards; /* Simple animation */
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-content .close-button {
+  color: #aaa;
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 32px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.modal-content .close-button:hover,
+.modal-content .close-button:focus {
+  color: #333;
+  text-decoration: none;
+}
+
+.modal-content h2 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  font-size: 1.8rem;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  outline: none;
+}
+
+#manualAddMessage {
+  margin-top: 15px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  .nav-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nav-link {
+    width: 100%;
+    text-align: center;
+  }
+
+  .watchlist-controls {
+    flex-direction: column;
+    align-items: stretch; /* Stretch items to fill width */
+    padding: 0.75rem;
+    gap: 10px; /* Reduce gap on small screens */
+  }
+
+  .control-select,
+  .btn {
+    width: 100%; /* Make dropdowns and buttons full width */
+    max-width: none; /* Remove max-width restriction */
+  }
+
+  .movie-list-container {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Smaller cards */
+    gap: 15px;
+  }
+
+  .poster-image {
+    height: 250px; /* Adjust poster height for smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin: 10px auto;
+    padding: 0 10px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .movie-list-container {
+    grid-template-columns: 1fr; /* Single column layout on very small screens */
+  }
+  .poster-image {
+    height: auto; /* Auto height to maintain aspect ratio on single column */
+  }
+  .movie-info-summary h2 {
+    font-size: 1.1rem;
+  }
 }
