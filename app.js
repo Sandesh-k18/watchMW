@@ -14,6 +14,13 @@ const app = express();
 // --- IMPORTANT: Add these middleware lines ---
 app.use(express.json()); // This middleware parses JSON request bodies
 app.use(express.urlencoded({ extended: true })); // This middleware parses URL-encoded bodies (good practice for forms)
+app.use((req, res, next) => {
+    // THIS IS THE CRUCIAL LINE. Ensure it passes the OBJECT, not a string.
+    res.locals.firebaseConfig = firebaseConfig; 
+    res.locals.__app_id = process.env.FIREBASE_APP_ID;
+    res.locals.__initial_auth_token = null;
+    next();
+});
 // --- End important middleware ---
 
 

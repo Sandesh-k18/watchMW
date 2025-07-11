@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="/login.style.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -292,7 +292,7 @@
                 await signOut(auth);
                 showMessageBox('Logged Out', 'You have been successfully logged out.');
                 // Redirect to home or login page after logout
-                window.location.href = '/login';
+                window.location.href = '/user/login';
             } catch (error) {
                 console.error("Error logging out:", error);
                 showMessageBox('Logout Error', `Failed to log out: ${error.message}`);
@@ -329,16 +329,16 @@
                     isAuthReady = true;
                 });
 
-                if (initialAuthToken && initialAuthToken !== 'null') {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Firebase: Signed in with custom token.");
-                } else {
-                    // Only sign in anonymously if not already authenticated via custom token
-                    if (!auth.currentUser) {
-                        await signInAnonymously(auth);
-                        console.log("Firebase: Signed in anonymously.");
-                    }
-                }
+                // if (initialAuthToken && initialAuthToken !== 'null') {
+                //     await signInWithCustomToken(auth, initialAuthToken);
+                //     console.log("Firebase: Signed in with custom token.");
+                // } else {
+                //     // Only sign in anonymously if not already authenticated via custom token
+                //     if (!auth.currentUser) {
+                //         await signInAnonymously(auth);
+                //         console.log("Firebase: Signed in anonymously.");
+                //     }
+                // }
 
             } catch (error) {
                 console.error("Firebase initialization failed:", error);

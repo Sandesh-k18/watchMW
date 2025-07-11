@@ -479,10 +479,11 @@
           if (initialAuthToken && initialAuthToken !== "null") {
             await signInWithCustomToken(auth, initialAuthToken);
             console.log("Firebase: Signed in with custom token.");
-          } else {
-            await signInAnonymously(auth);
-            console.log("Firebase: Signed in anonymously.");
-          }
+          } 
+          // else {
+          //   await signInAnonymously(auth);
+          //   console.log("Firebase: Signed in anonymously.");
+          // }
         } catch (error) {
           console.error("Firebase initialization failed:", error);
           showMessageBox(

@@ -100,16 +100,17 @@
 
           // Sign in with custom token if provided (from Canvas environment)
           // Otherwise, sign in anonymously for basic access
-          if (
-            typeof __initial_auth_token !== "undefined" &&
-            __initial_auth_token
-          ) {
-            await signInWithCustomToken(auth, __initial_auth_token);
-            console.log("Firebase: Signed in with custom token.");
-          } else {
-            await signInAnonymously(auth);
-            console.log("Firebase: Signed in anonymously.");
-          }
+          //sign in anonymously
+          // if (
+          //   typeof __initial_auth_token !== "undefined" &&
+          //   __initial_auth_token
+          // ) {
+          //   await signInWithCustomToken(auth, __initial_auth_token);
+          //   console.log("Firebase: Signed in with custom token.");
+          // } else {
+          //   await signInAnonymously(auth);
+          //   console.log("Firebase: Signed in anonymously.");
+          // }
         } catch (error) {
           console.error("Firebase initialization failed:", error);
           showMessageBox(

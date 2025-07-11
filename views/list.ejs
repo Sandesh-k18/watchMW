@@ -9,7 +9,6 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-
   </head>
   <body>
     <nav class="navbar">
@@ -38,8 +37,8 @@
           anytime, anywhere.
         </p>
         <div class="auth-links">
-          <a href="/register">Sign Up</a>
-          <a href="/login">Log In</a>
+          <a href="/user/register">Sign Up</a>
+          <a href="/user/login">Log In</a>
         </div>
       </div>
 
@@ -66,7 +65,7 @@
         </button>
         <button
           id="addBySearchBtn"
-          class="btn btn-primary"  
+          class="btn btn-primary"
           style="margin-left: 10px"
         >
           <a
@@ -214,31 +213,52 @@
     </div>
 
     <script type="module">
-      // Import Firebase services
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      // Import Firebase services (Using full URLs for direct browser module loading)
+      import {
+        initializeApp,
+        getApps,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js"; // Corrected URL for analytics
       import {
         getAuth,
-        signInAnonymously,
-        signInWithCustomToken,
         onAuthStateChanged,
+        signInWithCustomToken,
+        signInAnonymously,
       } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
       import {
         getFirestore,
-        doc,
-        getDoc,
-        setDoc,
         collection,
         query,
         where,
-        addDoc,
         getDocs,
+        orderBy,
         deleteDoc,
-        onSnapshot,
+        doc,
         updateDoc,
       } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-      // Module-scoped variables for Firebase instances and user state
-      let app;
+      console.log("list.ejs script loaded.");
+
+      // Your web app's Firebase configuration
+      // This will be injected from the server (assuming your app.js fix is in place)
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      // const firebaseConfig = { ... } -- THIS IS NOW COMMENTED OUT/REMOPLACED
+      // with the server-injected value below.
+
+      // Injected Firebase config from server
+
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyDpMZrupP9cwTb-JoStMtUNFoi1jLhfGNk",
+        authDomain: "wchmultimedia.firebaseapp.com",
+        projectId: "wchmultimedia",
+        storageBucket: "wchmultimedia.firebasestorage.app",
+        messagingSenderId: "537985084833",
+        appId: "1:537985084833:web:c6d85810ec4345a9946fe0",
+        measurementId: "G-28BWYHHFN7",
+      };
+      let app; // Declare 'app' instance globally within the module scope
+      let analytics; // Declare 'analytics' instance
       let db;
       let auth;
       let userId = null;
@@ -251,13 +271,12 @@
       // DOM elements
       const loadingIndicator = document.getElementById("loadingIndicator");
       const authPrompt = document.getElementById("authPrompt");
-      // IMPORTANT: watchlistContent now refers to the main movie grid container
       const watchlistContent = document.getElementById("watchlistContent");
       const noMoviesMessage = document.getElementById("noMoviesMessage");
       const messageBox = document.getElementById("messageBox");
       const messageTitle = document.getElementById("messageTitle");
       const messageContent = document.getElementById("messageContent");
-      const closeMessageBox = document.getElementById("closeMessageBox"); // Corrected ID
+      const closeMessageBox = document.getElementById("closeMessageBox");
 
       const watchlistControls = document.getElementById("watchlistControls");
       const sortSelect = document.getElementById("sortSelect");
@@ -270,9 +289,12 @@
       // Manual Add Modal DOM elements
       const addManuallyBtn = document.getElementById("addManuallyBtn");
       const manualAddModal = document.getElementById("manualAddModal");
-      // const closeButton = manualAddModal.querySelector('.close-button'); // This was redundant, use closeMessageBox
       const manualAddForm = document.getElementById("manualAddForm");
       const manualAddMessage = document.getElementById("manualAddMessage");
+
+      // IMPORTANT: The onAuthStateChanged listener MUST use the 'auth' instance
+      // obtained from getAuth(). It should typically be set up after Firebase app initialization.
+      // Removed the old firebase.auth().onAuthStateChanged here. It will be moved to DOMContentLoaded.
 
       // Function to show a custom message box
       function showMessageBox(title, message) {
@@ -294,7 +316,6 @@
 
       // Attach hideMessageBox to the close button
       if (closeMessageBox) {
-        // Use the corrected ID
         closeMessageBox.addEventListener("click", hideMessageBox);
       }
 
@@ -504,107 +525,119 @@
       }
 
       // Event listener for sorting dropdown
-      sortSelect.addEventListener("change", () => {
-        const sortedMovies = sortMovies(allWatchlistMovies, sortSelect.value);
-        renderWatchlistMovies(sortedMovies);
-      });
+      if (sortSelect) {
+        // Added check
+        sortSelect.addEventListener("change", () => {
+          const sortedMovies = sortMovies(allWatchlistMovies, sortSelect.value);
+          renderWatchlistMovies(sortedMovies);
+        });
+      }
 
       // Bulk Remove Function
-      bulkRemoveButton.addEventListener("click", async () => {
-        if (selectedMovieIds.size === 0) {
-          showMessageBox("No Selection", "Please select movies to remove.");
-          return;
-        }
-
-        if (
-          !confirm(
-            "Are you sure you want to remove the selected movies from your watchlist?"
-          )
-        ) {
-          return; // User cancelled
-        }
-
-        loadingIndicator.classList.remove("hidden");
-        let removedCount = 0;
-        const dbRef = db; // Use module-scoped db
-        const currentAppId = appId; // Use module-scoped appId
-        const currentUserId = userId; // Use module-scoped userId
-
-        try {
-          for (const movieIdToRemove of selectedMovieIds) {
-            const movieRef = doc(
-              dbRef,
-              `artifacts/${currentAppId}/users/${currentUserId}/watchlist`,
-              String(movieIdToRemove)
-            );
-            await deleteDoc(movieRef);
-            removedCount++;
+      if (bulkRemoveButton) {
+        // Added check
+        bulkRemoveButton.addEventListener("click", async () => {
+          if (selectedMovieIds.size === 0) {
+            showMessageBox("No Selection", "Please select movies to remove.");
+            return;
           }
-          showMessageBox(
-            "Success",
-            `${removedCount} movie(s) removed from your watchlist.`
-          );
-          selectedMovieIds.clear(); // Clear selection
-          await fetchAndDisplayWatchlist(); // Re-fetch and re-render
-        } catch (error) {
-          console.error("Error performing bulk remove:", error);
-          showMessageBox("Error", `Failed to remove movies: ${error.message}`);
-        } finally {
-          loadingIndicator.classList.add("hidden");
-        }
-      });
+
+          if (
+            !confirm(
+              "Are you sure you want to remove the selected movies from your watchlist?"
+            )
+          ) {
+            return; // User cancelled
+          }
+
+          loadingIndicator.classList.remove("hidden");
+          let removedCount = 0;
+          const dbRef = db; // Use module-scoped db
+          const currentAppId = appId; // Use module-scoped appId
+          const currentUserId = userId; // Use module-scoped userId
+
+          try {
+            for (const movieIdToRemove of selectedMovieIds) {
+              const movieRef = doc(
+                dbRef,
+                `artifacts/${currentAppId}/users/${currentUserId}/watchlist`,
+                String(movieIdToRemove)
+              );
+              await deleteDoc(movieRef);
+              removedCount++;
+            }
+            showMessageBox(
+              "Success",
+              `${removedCount} movie(s) removed from your watchlist.`
+            );
+            selectedMovieIds.clear(); // Clear selection
+            await fetchAndDisplayWatchlist(); // Re-fetch and re-render
+          } catch (error) {
+            console.error("Error performing bulk remove:", error);
+            showMessageBox(
+              "Error",
+              `Failed to remove movies: ${error.message}`
+            );
+          } finally {
+            loadingIndicator.classList.add("hidden");
+          }
+        });
+      }
 
       // Bulk Change Status Function
-      applyBulkStatusButton.addEventListener("click", async () => {
-        const newStatus = bulkStatusSelect.value;
-        if (selectedMovieIds.size === 0) {
-          showMessageBox("No Selection", "Please select movies to update.");
-          return;
-        }
-        if (!newStatus) {
-          showMessageBox(
-            "No Status Selected",
-            "Please select a new status from the dropdown."
-          );
-          return;
-        }
-
-        loadingIndicator.classList.remove("hidden");
-        let updatedCount = 0;
-        const dbRef = db; // Use module-scoped db
-        const currentAppId = appId; // Use module-scoped appId
-        const currentUserId = userId; // Use module-scoped userId
-
-        try {
-          for (const movieIdToUpdate of selectedMovieIds) {
-            const movieRef = doc(
-              dbRef,
-              `artifacts/${currentAppId}/users/${currentUserId}/watchlist`,
-              String(movieIdToUpdate)
-            );
-            await updateDoc(movieRef, {
-              status: newStatus,
-              updated_at: new Date(),
-            });
-            updatedCount++;
+      if (applyBulkStatusButton) {
+        // Added check
+        applyBulkStatusButton.addEventListener("click", async () => {
+          const newStatus = bulkStatusSelect.value;
+          if (selectedMovieIds.size === 0) {
+            showMessageBox("No Selection", "Please select movies to update.");
+            return;
           }
-          showMessageBox(
-            "Success",
-            `${updatedCount} movie(s) status updated to "${newStatus}".`
-          );
-          selectedMovieIds.clear(); // Clear selection
-          bulkStatusSelect.value = ""; // Reset dropdown
-          await fetchAndDisplayWatchlist(); // Re-fetch and re-render
-        } catch (error) {
-          console.error("Error performing bulk status update:", error);
-          showMessageBox(
-            "Error",
-            `Failed to update movie status: ${error.message}`
-          );
-        } finally {
-          loadingIndicator.classList.add("hidden");
-        }
-      });
+          if (!newStatus) {
+            showMessageBox(
+              "No Status Selected",
+              "Please select a new status from the dropdown."
+            );
+            return;
+          }
+
+          loadingIndicator.classList.remove("hidden");
+          let updatedCount = 0;
+          const dbRef = db; // Use module-scoped db
+          const currentAppId = appId; // Use module-scoped appId
+          const currentUserId = userId; // Use module-scoped userId
+
+          try {
+            for (const movieIdToUpdate of selectedMovieIds) {
+              const movieRef = doc(
+                dbRef,
+                `artifacts/${currentAppId}/users/${currentUserId}/watchlist`,
+                String(movieIdToUpdate)
+              );
+              await updateDoc(movieRef, {
+                status: newStatus,
+                updated_at: new Date(),
+              });
+              updatedCount++;
+            }
+            showMessageBox(
+              "Success",
+              `${updatedCount} movie(s) status updated to "${newStatus}".`
+            );
+            selectedMovieIds.clear(); // Clear selection
+            bulkStatusSelect.value = ""; // Reset dropdown
+            await fetchAndDisplayWatchlist(); // Re-fetch and re-render
+          } catch (error) {
+            console.error("Error performing bulk status update:", error);
+            showMessageBox(
+              "Error",
+              `Failed to update movie status: ${error.message}`
+            );
+          } finally {
+            loadingIndicator.classList.add("hidden");
+          }
+        });
+      }
 
       // Function to fetch and display watchlist
       async function fetchAndDisplayWatchlist() {
@@ -620,8 +653,8 @@
         // Wait until Firebase Auth and Firestore are initialized and ready
         await new Promise((resolve) => {
           const checkReadyInterval = setInterval(() => {
-            if (isAuthReady && db) {
-              // Ensure db is initialized
+            if (isAuthReady && db && auth) {
+              // Ensure auth is also initialized
               clearInterval(checkReadyInterval);
               resolve();
             }
@@ -629,9 +662,11 @@
         });
 
         if (!userId) {
-          // If user is not logged in
+          // If user is not logged in, redirect to login page
           loadingIndicator.classList.add("hidden");
-          authPrompt.classList.remove("hidden");
+          // authPrompt.classList.remove("hidden"); // No need to show prompt, just redirect
+          console.log("No user is logged in. Redirecting to login page.");
+          window.location.href = "/user/login";
           return;
         }
 
@@ -640,7 +675,7 @@
             db,
             `artifacts/${appId}/users/${userId}/watchlist`
           );
-          const q = query(watchlistCollectionRef);
+          const q = query(watchlistCollectionRef, orderBy("added_at", "desc")); // Added default order
 
           const querySnapshot = await getDocs(q);
           allWatchlistMovies = []; // Reset the global array
@@ -649,7 +684,7 @@
           });
 
           if (allWatchlistMovies.length > 0) {
-            const currentSort = sortSelect.value;
+            const currentSort = sortSelect.value || "added_at_desc"; // Default sort if none selected
             const sortedMovies = sortMovies(allWatchlistMovies, currentSort);
             renderWatchlistMovies(sortedMovies);
           } else {
@@ -668,9 +703,9 @@
       document.addEventListener("DOMContentLoaded", async () => {
         try {
           // Get Firebase config and Canvas globals from EJS local variables
-          const firebaseConfig = JSON.parse(`<%- firebaseConfig %>`);
-          const initialAuthToken = `<%- __initial_auth_token %>`;
-          appId = `<%- __app_id %>`; // Assign to module-scoped appId
+          // Use the `firebaseConfig` object already declared from the server injection
+          const initialAuthToken = `<%- __initial_auth_token %>`; // Make sure __initial_auth_token is passed by server
+          appId = `<%- __app_id %>`; // Make sure __app_id is passed by server
 
           if (
             Object.keys(firebaseConfig).length === 0 ||
@@ -687,29 +722,65 @@
             return;
           }
 
-          app = initializeApp(firebaseConfig);
+          // Initialize app only if it hasn't been initialized already
+          if (!getApps().length) {
+            app = initializeApp(firebaseConfig);
+            analytics = getAnalytics(app); // Initialize analytics
+            console.log("Firebase app initialized.");
+          } else {
+            app = getApps()[0]; // Get the already initialized app
+            analytics = getAnalytics(app); // Ensure analytics is also initialized with existing app
+            console.log(
+              "Firebase app already initialized, retrieving existing app."
+            );
+          }
+
           db = getFirestore(app); // Assign to module-scoped db
           auth = getAuth(app); // Assign to module-scoped auth
 
+          // THIS IS THE CORRECT PLACE AND WAY TO USE onAuthStateChanged
           onAuthStateChanged(auth, async (user) => {
             if (user) {
               userId = user.uid; // Assign to module-scoped userId
-              console.log("Firebase: User signed in:", userId);
+              console.log("Firebase: User signed in:", user.email, user.uid);
             } else {
               userId = null; // Assign to module-scoped userId
               console.log("Firebase: User signed out.");
             }
             isAuthReady = true; // Auth state has been determined
-            fetchAndDisplayWatchlist(); // Call after auth state is determined
+            // IMPORTANT: fetchAndDisplayWatchlist will be called here based on the auth state
+            // It will handle the redirect if userId is null
+            fetchAndDisplayWatchlist();
           });
 
-          if (initialAuthToken && initialAuthToken !== "null") {
-            await signInWithCustomToken(auth, initialAuthToken);
-            console.log("Firebase: Signed in with custom token.");
-          } else {
-            await signInAnonymously(auth);
-            console.log("Firebase: Signed in anonymously.");
-          }
+          // Handle initial sign-in for custom token or anonymous (if you use them)
+          // Note: For email/password login, you'd typically handle sign-in on the login page,
+          // and then auth state persistence (handled by Firebase SDK) would keep the user signed in
+          // on subsequent page loads like this one.
+          // If you *do* want to always sign in anonymously here as a fallback or for unauthenticated access:
+          // if (!auth.currentUser) { // Only sign in if not already authenticated
+          //    await signInAnonymously(auth);
+          //    console.log("Firebase: Signed in anonymously.");
+          // }
+
+          // If you use custom tokens for session management, this is where you'd sign in:
+          // if (initialAuthToken && initialAuthToken !== "null") {
+          //   // This part is more common for SSR with Firebase Auth if you want to
+          //   // use ID tokens generated on the server to sign in client-side.
+          //   // For email/password, Firebase client SDK handles persistence automatically.
+          //   try {
+          //     await signInWithCustomToken(auth, initialAuthToken);
+          //     console.log("Firebase: Signed in with custom token.");
+          //   } catch (tokenError) {
+          //     console.error("Error signing in with custom token:", tokenError);
+          //     // Potentially redirect to login if token is invalid
+          //     window.location.href = '/user/login';
+          //   }
+          // } else {
+          //   // If no custom token, and you want to ensure a user is signed in (even anonymously)
+          //   // you might add a signInAnonymously here if not already signed in.
+          //   // But it's generally better to let onAuthStateChanged handle redirects for unauthenticated users.
+          // }
         } catch (error) {
           console.error("Firebase initialization failed:", error);
           showMessageBox(
@@ -719,7 +790,7 @@
         }
       });
 
-      // Manual Add Modal / Form Logic
+      // Manual Add Modal / Form Logic (Remains mostly the same, ensure DOM elements exist)
       document.addEventListener("DOMContentLoaded", () => {
         // Open the modal
         if (addManuallyBtn) {
@@ -731,13 +802,14 @@
         }
 
         // Close the modal when the 'x' is clicked
-        if (closeMessageBox) {
-          // Use the close button specific to the modal
-          manualAddModal
-            .querySelector(".close-button")
-            .addEventListener("click", () => {
-              manualAddModal.style.display = "none";
-            });
+        // Make sure you have a close button inside manualAddModal with class 'close-button'
+        const manualAddModalCloseButton = manualAddModal
+          ? manualAddModal.querySelector(".close-button")
+          : null;
+        if (manualAddModalCloseButton) {
+          manualAddModalCloseButton.addEventListener("click", () => {
+            manualAddModal.style.display = "none";
+          });
         }
 
         // Close the modal when clicking outside of it
@@ -768,13 +840,24 @@
               year: year ? parseInt(year, 10) : null, // Convert year to number, or null if empty
             };
 
+            // Get the current user's ID token
+            // This assumes 'auth' is globally available within the module scope and initialized
+            const user = auth.currentUser;
+            if (!user) {
+              manualAddMessage.textContent =
+                "You must be logged in to add movies.";
+              manualAddMessage.style.color = "red";
+              return;
+            }
+            const idToken = await user.getIdToken(); // Get the ID token
+
             try {
-              // Send data to your backend
+              // Send data to your backend with the ID token in the Authorization header
               const response = await fetch("/movies/add-manual", {
-                // <-- This is your new backend route
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
+                  Authorization: `Bearer ${idToken}`, // Pass the ID token
                 },
                 body: JSON.stringify(movieData),
               });

@@ -292,7 +292,7 @@
                 await signOut(auth);
                 showMessageBox('Logged Out', 'You have been successfully logged out.');
                 // Redirect to home or login page after logout
-                window.location.href = '/login';
+                window.location.href = '/user/login';
             } catch (error) {
                 console.error("Error logging out:", error);
                 showMessageBox('Logout Error', `Failed to log out: ${error.message}`);
@@ -329,16 +329,16 @@
                     isAuthReady = true;
                 });
 
-                if (initialAuthToken && initialAuthToken !== 'null') {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Firebase: Signed in with custom token.");
-                } else {
-                    // Only sign in anonymously if not already authenticated via custom token
-                    if (!auth.currentUser) {
-                        await signInAnonymously(auth);
-                        console.log("Firebase: Signed in anonymously.");
-                    }
-                }
+                // if (initialAuthToken && initialAuthToken !== 'null') {
+                //     await signInWithCustomToken(auth, initialAuthToken);
+                //     console.log("Firebase: Signed in with custom token.");
+                // } else {
+                //     // Only sign in anonymously if not already authenticated via custom token
+                //     if (!auth.currentUser) {
+                //         await signInAnonymously(auth);
+                //         console.log("Firebase: Signed in anonymously.");
+                //     }
+                // }
 
             } catch (error) {
                 console.error("Firebase initialization failed:", error);
@@ -365,7 +365,7 @@
                 console.log("User registered:", user.uid);
                 showMessageBox('Registration Successful', 'Account created successfully! You can now log in.');
                 // Redirect to login page after successful registration
-                window.location.href = '/login';
+                window.location.href = '/user/login';
             } catch (error) {
                 console.error("Registration error:", error);
                 let errorMessage = 'Failed to register. Please try again.';

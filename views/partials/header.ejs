@@ -1,0 +1,88 @@
+<!-- views/partials/header.ejs -->
+<header>
+    <div class="container">
+        <a href="/" class="logo">
+            <!-- Ensure this path is correct for your logo -->
+            <img src="/images/your_logo_filename.png" alt="My Watchlist Logo">
+        </a>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/search">Search Movies</a></li>
+                <li><a href="/user/list">My Watchlist</a></li>
+                <!-- Conditional display for auth links/buttons -->
+                <li id="authLinks">
+                    <!-- These will be dynamically updated by JavaScript -->
+                    <a href="/user/login">Login</a>
+                    <a href="/user/register">Register</a>
+                </li>
+                <li id="logoutBtnContainer" style="display: none;">
+                    <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<script type="module">
+    // This script handles auth state for the header, using modular Firebase imports.
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+    // Injected Firebase config from server (CORRECTED: now explicitly parsed on client-side)
+    // The EJS outputs a string, and JSON.parse converts it to an object.
+    const firebaseConfigForHeader = JSON.parse('<%- firebaseConfig || "{}" %>');
+
+    let authForHeader; // Declare authForHeader here
+
+    // Initialize Firebase only if it hasn't been initialized already by another script (e.g., list.ejs)
+    if (Object.keys(firebaseConfigForHeader).length === 0 || !firebaseConfigForHeader.apiKey || !firebaseConfigForHeader.authDomain) {
+        console.error("Firebase config is missing or incomplete in header. Cannot initialize Firebase.");
+    } else {
+        if (!firebase.apps.length) {
+            initializeApp(firebaseConfigForHeader);
+        }
+        authForHeader = getAuth(); // Get auth instance
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const authLinks = document.getElementById('authLinks');
+        const logoutBtnContainer = document.getElementById('logoutBtnContainer');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        if (!authLinks) { console.error("ERROR: authLinks not found in header."); return; }
+        if (!logoutBtnContainer) { console.error("ERROR: logoutBtnContainer not found in header."); return; }
+        if (!logoutBtn) { console.error("ERROR: logoutBtn not found in header."); return; }
+
+        // Listen for authentication state changes
+        if (authForHeader) { // Ensure authForHeader is initialized before using
+            onAuthStateChanged(authForHeader, (user) => {
+                if (user) {
+                    // User is signed in
+                    authLinks.style.display = 'none'; // Hide login/register links
+                    logoutBtnContainer.style.display = 'list-item'; // Show logout button (use list-item for li)
+                    console.log("Header: User is logged in.", user.email || "Anonymous");
+                } else {
+                    // User is signed out
+                    authLinks.style.display = 'list-item'; // Show login/register links
+                    logoutBtnContainer.style.display = 'none'; // Hide logout button
+                    console.log("Header: User is logged out.");
+                }
+            });
+
+            // Logout button click handler
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    await signOut(authForHeader); // Use modular signOut
+                    alert('You have been logged out.'); // You can replace this with your custom message box
+                    window.location.href = '/'; // Redirect to home page after logout
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    alert('Error logging out: ' + error.message); // You can replace this with your custom message box
+                }
+            });
+        } else {
+            console.error("Firebase Auth not initialized in header, cannot set up auth state listener or logout button.");
+        }
+    });
+</script>
