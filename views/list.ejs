@@ -4,13 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Watchlist</title>
+    <!-- Link to your main CSS file (assuming it's in public/css/style.css) -->
     <link href="/list.css" rel="stylesheet" />
+    <!-- Google Fonts CDN for Inter -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
+    <!-- Assuming you have a partials/header.ejs. If not, include the navbar directly here. -->
     <nav class="navbar">
       <div class="nav-container">
         <a href="/" class="nav-link">Home</a>
@@ -43,18 +46,21 @@
       </div>
 
       <div id="watchlistControls" class="watchlist-controls hidden">
-        <select id="sortSelect">
-          <option value="added_at_desc">Date Added (Newest First)</option>
-          <option value="added_at_asc">Date Added (Oldest First)</option>
-          <option value="release_date_desc">Release Date (Newest First)</option>
-          <option value="release_date_asc">Release Date (Oldest First)</option>
-          <option value="title_asc">Title (A-Z)</option>
-          <option value="title_desc">Title (Z-A)</option>
-        </select>
+        <div class="control-group">
+          <label for="sortSelect">Sort By:</label>
+          <select id="sortSelect" class="control-select">
+            <option value="added_at_desc">Date Added (Newest First)</option>
+            <option value="added_at_asc">Date Added (Oldest First)</option>
+            <option value="release_date_desc">Release Date (Newest First)</option>
+            <option value="release_date_asc">Release Date (Oldest First)</option>
+            <option value="title_asc">Title (A-Z)</option>
+            <option value="title_desc">Title (Z-A)</option>
+          </select>
+        </div>
 
         <div class="control-group">
           <label for="filterStatusAndTypeSelect">Filter:</label>
-          <select id="filterStatusAndTypeSelect">
+          <select id="filterStatusAndTypeSelect" class="control-select">
             <option value="all">All</option>
             <option value="status:Plan to Watch">Plan to Watch</option>
             <option value="status:Watching">Watching</option>
@@ -62,23 +68,12 @@
             <option value="status:On Hold">On Hold</option>
             <option value="status:Dropped">Dropped</option>
             <option value="type:movie">Movies Only</option>
-            <option value="type:series">Series Only</option>
+            <option value="type:series">Series Only</soption>
             <option value="isManual:true">Manually Added Only</option>
           </select>
         </div>
 
-        <button
-          id="addManuallyBtn"
-          class="btn btn-primary"
-          style="margin-left: 10px"
-        >
-          Add Manually
-        </button>
-        <button
-          id="addBySearchBtn"
-          class="btn btn-primary"
-          style="margin-left: 10px"
-        >
+        <button id="addBySearchBtn" class="btn btn-primary">
           <a
             href="/search"
             style="
@@ -87,38 +82,44 @@
               display: block;
               padding: 0;
             "
-            >Add By Search</a
+            >Search</a
           >
         </button>
 
-        <select id="bulkStatusSelect" class="hidden">
-          <option value="">Change Status Of Selected To...</option>
-          <option value="Plan to Watch">Plan to Watch</option>
-          <option value="Watching">Watching</option>
-          <option value="Completed">Completed</option>
-          <option value="Dropped">Dropped</option>
-        </select>
-        <button id="applyBulkStatusButton" class="hidden">Apply Status</button>
-        <button id="bulkRemoveButton" class="remove-button hidden">
-          Remove Selected
+        <button id="addManuallyBtn" class="btn btn-primary">
+          Add Manually
         </button>
-      </div>
-      <div class="control-group">
-        <label for="filterStateSelect">State:</label>
-        <select id="filterStateSelect">
-          <option value="all">All States</option>
+        
+        <!-- NEW: Download Filtered List Button -->
+        <button id="downloadListBtn" class="btn btn-secondary">
+          Download Filtered List
+        </button>
+
+        <!-- NEW: Upload List Button and Hidden File Input -->
+        <button id="uploadListBtn" class="btn btn-secondary">
+          Upload List
+        </button>
+        <input type="file" id="fileInput" accept=".txt" class="hidden" style="display: none;">
+
+        <select id="bulkStatusSelect" class="control-select hidden">
+          <option value="">Change Status Of Selected To...</option>
           <option value="Plan to Watch">Plan to Watch</option>
           <option value="Watching">Watching</option>
           <option value="Completed">Completed</option>
           <option value="On Hold">On Hold</option>
           <option value="Dropped">Dropped</option>
         </select>
+        <button id="applyBulkStatusButton" class="btn btn-secondary hidden">Apply Status</button>
+        <button id="bulkRemoveButton" class="btn btn-danger hidden">
+          Remove Selected
+        </button>
       </div>
+
       <div id="watchlistContent" class="movie-list-container hidden"></div>
 
       <div id="noMoviesMessage" class="no-content-message hidden">
-        <p>Your watchlist is empty! Start adding movies from the</p>
-        <a href="/search">Search Movies</a> page.
+        <p>Your watchlist is empty! Start adding movies from the
+        <a href="/search">Search Movies</a> page.</p>
       </div>
     </div>
 
@@ -318,747 +319,913 @@
       </div>
     </div>
 
+    <!-- Assuming you have a partials/footer.ejs. If not, include the footer directly here. -->
+    <!-- <%- include('partials/footer') %> -->
+
     <script type="module">
-      // Import Firebase services (Using full URLs for direct browser module loading)
-      import {
-        initializeApp,
-        getApps,
-      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js"; // Corrected URL for analytics
-      import {
-        getAuth,
-        onAuthStateChanged,
-        signInWithCustomToken,
-        signInAnonymously,
-      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-      import {
-        getFirestore,
-        collection,
-        query,
-        where,
-        getDocs,
-        orderBy,
-        deleteDoc,
-        doc,
-        updateDoc,
-      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Import Firebase services
+        import {
+            initializeApp,
+            getApps,
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import {
+            getAuth,
+            onAuthStateChanged,
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            query,
+            // where, // Not explicitly used in the main fetch query
+            getDocs,
+            // orderBy, // Removed from query, client-side sorting is used
+            deleteDoc,
+            doc,
+            updateDoc,
+            Timestamp, // Import Timestamp for serverTimestamp() equivalent
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-      console.log("list.ejs script loaded.");
+        console.log("list.ejs script loaded.");
 
-      // Your web app's Firebase configuration
-      // This will be injected from the server (assuming your app.js fix is in place)
-      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-      // const firebaseConfig = { ... } -- THIS IS NOW COMMENTED OUT/REMOPLACED
-      // with the server-injected value below.
+        // Your web app's Firebase configuration (from server injection)
+        const firebaseConfig = JSON.parse('<%- firebaseConfig || "{}" %>');
+        let app;
+        let analytics;
+        let db;
+        let auth;
+        let userId = null;
+        let isAuthReady = false;
+        let appId = `<%- __app_id || 'default-app-id' %>`;
 
-      // Injected Firebase config from server
+        let allWatchlistMovies = []; // Stores the full list of movies fetched from Firestore
+        let displayedMovies = []; // Stores the currently filtered and sorted movies for rendering/download
+        let selectedMovieIds = new Set(); // Stores IDs of selected movies for bulk actions
 
-      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-      const firebaseConfig = {
-        apiKey: "AIzaSyDpMZrupP9cwTb-JoStMtUNFoi1jLhfGNk",
-        authDomain: "wchmultimedia.firebaseapp.com",
-        projectId: "wchmultimedia",
-        storageBucket: "wchmultimedia.firebasestorage.app",
-        messagingSenderId: "537985084833",
-        appId: "1:537985084833:web:c6d85810ec4345a9946fe0",
-        measurementId: "G-28BWYHHFN7",
-      };
-      let app; // Declare 'app' instance globally within the module scope
-      let analytics; // Declare 'analytics' instance
-      let db;
-      let auth;
-      let userId = null;
-      let isAuthReady = false;
-      let appId = "default-app-id"; // Default, will be updated from EJS local variable
+        // --- DOM elements (Declare all here, after global variables) ---
+        const sortSelect = document.getElementById("sortSelect");
+        const filterStatusAndTypeSelect = document.getElementById("filterStatusAndTypeSelect");
+        const downloadListBtn = document.getElementById("downloadListBtn");
+        const uploadListBtn = document.getElementById("uploadListBtn");
+        const fileInput = document.getElementById("fileInput");
 
-      let allWatchlistMovies = []; // Stores the full list of movies fetched from Firestore
-      let selectedMovieIds = new Set(); // Stores IDs of selected movies for bulk actions
+        const loadingIndicator = document.getElementById("loadingIndicator");
+        const authPrompt = document.getElementById("authPrompt");
+        const watchlistContent = document.getElementById("watchlistContent");
+        const noMoviesMessage = document.getElementById("noMoviesMessage");
+        const messageBox = document.getElementById("messageBox");
+        const messageTitle = document.getElementById("messageTitle");
+        const messageContent = document.getElementById("messageContent");
+        const closeMessageBox = document.getElementById("closeMessageBox");
 
-      // --- GLOBAL VARIABLES (Declare these at the top level of your script) ---
-      let currentWatchlist = []; // Declare and initialize it as an empty array initially
+        const watchlistControls = document.getElementById("watchlistControls");
+        const bulkStatusSelect = document.getElementById("bulkStatusSelect");
+        const applyBulkStatusButton = document.getElementById("applyBulkStatusButton");
+        const bulkRemoveButton = document.getElementById("bulkRemoveButton");
 
-      const sortSelect = document.getElementById("sortSelect");
-      const filterStatusAndTypeSelect = document.getElementById(
-        "filterStatusAndTypeSelect"
-      );
-      const filterStateSelect = document.getElementById("filterStateSelect"); // THIS ONE IS CRITICAL
-      // DOM elements
-      const loadingIndicator = document.getElementById("loadingIndicator");
-      const authPrompt = document.getElementById("authPrompt");
-      const watchlistContent = document.getElementById("watchlistContent");
-      const noMoviesMessage = document.getElementById("noMoviesMessage");
-      const messageBox = document.getElementById("messageBox");
-      const messageTitle = document.getElementById("messageTitle");
-      const messageContent = document.getElementById("messageContent");
-      const closeMessageBox = document.getElementById("closeMessageBox");
+        // Manual Add Modal DOM elements
+        const addManuallyBtn = document.getElementById("addManuallyBtn");
+        const manualAddModal = document.getElementById("manualAddModal");
+        const manualAddForm = document.getElementById("manualAddForm");
+        const manualAddMessage = document.getElementById("manualAddMessage");
+        const manualMovieDescription = document.getElementById("manualMovieDescription");
+        const manualMovieName = document.getElementById("manualMovieName");
+        const manualMovieYear = document.getElementById("manualMovieYear");
+        const manualMovieStatus = document.getElementById("manualMovieStatus");
+        const manualMovieType = document.getElementById("manualMovieType");
+        const manualMovieGenre = document.getElementById("manualMovieGenre");
 
-      const watchlistControls = document.getElementById("watchlistControls");
-      const bulkStatusSelect = document.getElementById("bulkStatusSelect");
-      const applyBulkStatusButton = document.getElementById(
-        "applyBulkStatusButton"
-      );
-      const bulkRemoveButton = document.getElementById("bulkRemoveButton");
+        // Function to show a custom message box (with optional confirmation)
+        function showMessageBox(title, message, isConfirm = false, onConfirm = null) {
+            if (messageBox && messageTitle && messageContent) {
+                messageTitle.textContent = title;
+                messageContent.textContent = message;
+                messageBox.classList.add("show");
 
-      // Manual Add Modal DOM elements
-      const addManuallyBtn = document.getElementById("addManuallyBtn");
-      const manualAddModal = document.getElementById("manualAddModal");
-      const manualAddForm = document.getElementById("manualAddForm");
-      const manualAddMessage = document.getElementById("manualAddMessage");
-      const manualMovieDescription = document.getElementById(
-        "manualMovieDescription"
-      ); // NEW: For the description field
+                // Clear previous buttons
+                const existingButtons = messageBox.querySelectorAll('.message-box-buttons button');
+                existingButtons.forEach(btn => btn.remove());
 
-      // Ensure these specific declarations for your form inputs are present:
-      const manualMovieName = document.getElementById("manualMovieName");
-      const manualMovieYear = document.getElementById("manualMovieYear");
-      const manualMovieStatus = document.getElementById("manualMovieStatus"); // <--- MAKE SURE THIS LINE IS HERE!
-      const manualMovieType = document.getElementById("manualMovieType"); // <--- MAKE SURE THIS LINE IS HERE!
-      const manualMovieGenre = document.getElementById("manualMovieGenre"); // <--- MAKE SURE THIS LINE IS HERE!
+                if (isConfirm && onConfirm) {
+                    const confirmButton = document.createElement('button');
+                    confirmButton.textContent = 'Confirm';
+                    confirmButton.classList.add('btn', 'btn-danger'); // Use appropriate styling
+                    confirmButton.style.marginRight = '10px';
+                    confirmButton.addEventListener('click', () => {
+                        onConfirm();
+                        hideMessageBox();
+                    });
 
-      // IMPORTANT: The onAuthStateChanged listener MUST use the 'auth' instance
-      // obtained from getAuth(). It should typically be set up after Firebase app initialization.
-      // Removed the old firebase.auth().onAuthStateChanged here. It will be moved to DOMContentLoaded.
+                    const cancelButton = document.createElement('button');
+                    cancelButton.textContent = 'Cancel';
+                    cancelButton.classList.add('btn', 'btn-secondary');
+                    cancelButton.addEventListener('click', () => {
+                        hideMessageBox();
+                    });
 
-      // Function to show a custom message box
-      function showMessageBox(title, message) {
-        if (messageBox && messageTitle && messageContent) {
-          messageTitle.textContent = title;
-          messageContent.textContent = message;
-          messageBox.classList.add("show"); // Assuming 'show' class makes it visible
-        } else {
-          console.error("Message box elements not found:", title, message);
-        }
-      }
-
-      // Function to hide the custom message box
-      function hideMessageBox() {
-        if (messageBox) {
-          messageBox.classList.remove("show");
-        }
-      }
-
-      // Attach hideMessageBox to the close button
-      if (closeMessageBox) {
-        closeMessageBox.addEventListener("click", hideMessageBox);
-      }
-
-      // Function to update visibility of bulk action buttons
-      function updateBulkActionVisibility() {
-        if (selectedMovieIds.size > 0) {
-          bulkStatusSelect.classList.remove("hidden");
-          applyBulkStatusButton.classList.remove("hidden");
-          bulkRemoveButton.classList.remove("hidden");
-        } else {
-          bulkStatusSelect.classList.add("hidden");
-          applyBulkStatusButton.classList.add("hidden");
-          bulkRemoveButton.classList.add("hidden");
-          bulkStatusSelect.value = ""; // Reset dropdown
-        }
-      }
-
-      // Function to render movie cards
-      function renderWatchlistMovies(moviesToRender) {
-        watchlistContent.innerHTML = ""; // Clear current display
-        if (moviesToRender.length === 0) {
-          noMoviesMessage.classList.remove("hidden");
-          watchlistControls.classList.add("hidden");
-          return;
-        }
-
-        noMoviesMessage.classList.add("hidden");
-        watchlistControls.classList.remove("hidden"); // Show controls if movies exist
-
-        moviesToRender.forEach((movie) => {
-          const movieCard = document.createElement("div");
-          movieCard.classList.add("movie-card");
-          // Add 'selected' class if movie is currently selected
-          if (selectedMovieIds.has(movie.id)) {
-            movieCard.classList.add("selected");
-          }
-
-          // Checkbox for selection
-          const checkboxContainer = document.createElement("div");
-          checkboxContainer.classList.add("checkbox-container");
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.value = movie.id;
-          checkbox.checked = selectedMovieIds.has(movie.id); // Set initial checked state
-          checkbox.addEventListener("change", (event) => {
-            if (event.target.checked) {
-              selectedMovieIds.add(movie.id);
-              movieCard.classList.add("selected");
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.classList.add('message-box-buttons');
+                    buttonContainer.style.marginTop = '20px';
+                    buttonContainer.appendChild(confirmButton);
+                    buttonContainer.appendChild(cancelButton);
+                    messageBox.appendChild(buttonContainer);
+                }
             } else {
-              selectedMovieIds.delete(movie.id);
-              movieCard.classList.remove("selected");
+                console.error("Message box elements not found:", title, message);
+                alert(`${title}\n\n${message}`); // Fallback to alert
             }
+        }
+
+        // Function to hide the custom message box
+        function hideMessageBox() {
+            if (messageBox) {
+                messageBox.classList.remove("show");
+            }
+        }
+
+        // Function to update visibility of bulk action buttons
+        function updateBulkActionVisibility() {
+            if (selectedMovieIds.size > 0) {
+                bulkStatusSelect.classList.remove("hidden");
+                applyBulkStatusButton.classList.remove("hidden");
+                bulkRemoveButton.classList.remove("hidden");
+            } else {
+                bulkStatusSelect.classList.add("hidden");
+                applyBulkStatusButton.classList.add("hidden");
+                bulkRemoveButton.classList.add("hidden");
+                bulkStatusSelect.value = ""; // Reset dropdown
+            }
+        }
+
+        // Function to render movie cards
+        function renderWatchlistMovies(moviesToRender) {
+            watchlistContent.innerHTML = ""; // Clear current display
+            if (moviesToRender.length === 0) {
+                watchlistContent.classList.add("hidden"); // Hide content if empty
+                return;
+            }
+
+            watchlistContent.classList.remove("hidden"); // Show content if movies exist
+
+            moviesToRender.forEach((movie) => {
+                const movieCard = document.createElement("div");
+                movieCard.classList.add("movie-card");
+                if (selectedMovieIds.has(movie.id)) {
+                    movieCard.classList.add("selected");
+                }
+
+                const checkboxContainer = document.createElement("div");
+                checkboxContainer.classList.add("checkbox-container");
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.value = movie.id;
+                checkbox.checked = selectedMovieIds.has(movie.id);
+                checkbox.addEventListener("change", (event) => {
+                    if (event.target.checked) {
+                        selectedMovieIds.add(movie.id);
+                        movieCard.classList.add("selected");
+                    } else {
+                        selectedMovieIds.delete(movie.id);
+                        movieCard.classList.remove("selected");
+                    }
+                    updateBulkActionVisibility();
+                });
+                checkboxContainer.appendChild(checkbox);
+                movieCard.appendChild(checkboxContainer);
+
+                const statusBadge = document.createElement("span");
+                statusBadge.classList.add("status-badge");
+                statusBadge.classList.add(
+                    movie.status
+                        ? movie.status.toLowerCase().replace(/\s/g, "-")
+                        : "plan-to-watch"
+                );
+                statusBadge.textContent = movie.status || "Plan to Watch";
+                movieCard.appendChild(statusBadge);
+
+                const cardLink = document.createElement("a");
+                cardLink.href = `/movie/${movie.id}`;
+                cardLink.classList.add("card-link");
+                cardLink.style.textDecoration = "none";
+                cardLink.style.color = "inherit";
+                cardLink.style.display = "block";
+                cardLink.style.height = "100%";
+
+                const poster = document.createElement("img");
+                poster.alt = movie.title;
+                poster.classList.add("poster-image");
+                if (movie.isManual) {
+                    poster.src = "/images/your_logo_filename.png"; // Use your actual default logo path
+                    poster.classList.add("custom-manual-poster");
+                } else if (movie.poster_path) {
+                    poster.src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+                } else {
+                    poster.src = "/images/your_logo_filename.png"; // Fallback for TMDB movies with no poster
+                }
+                poster.onerror = function () {
+                    this.onerror = null;
+                    this.src = "/images/your_logo_filename.png";
+                };
+
+                const movieInfoSummary = document.createElement("div");
+                movieInfoSummary.classList.add("movie-info-summary");
+
+                const titleElement = document.createElement("h2");
+                titleElement.textContent = movie.title;
+
+                const displayYear = movie.year
+                    ? movie.year
+                    : movie.release_date
+                        ? new Date(movie.release_date).getFullYear()
+                        : "N/A";
+                const releaseYearElement = document.createElement("p");
+                releaseYearElement.classList.add("release-year");
+                releaseYearElement.textContent = `Year: ${displayYear}`;
+
+                const overviewOverlay = document.createElement("div");
+                overviewOverlay.classList.add("movie-overview-overlay");
+                const overviewText = document.createElement("p");
+                overviewText.textContent =
+                    movie.overview || "No description available.";
+                overviewOverlay.appendChild(overviewText);
+
+                movieInfoSummary.appendChild(titleElement);
+                movieInfoSummary.appendChild(releaseYearElement);
+
+                cardLink.appendChild(poster);
+                cardLink.appendChild(movieInfoSummary);
+                cardLink.appendChild(overviewOverlay);
+
+                movieCard.appendChild(cardLink);
+                watchlistContent.appendChild(movieCard);
+            });
             updateBulkActionVisibility();
-          });
-          checkboxContainer.appendChild(checkbox);
-          movieCard.appendChild(checkboxContainer);
-
-          // Status Badge
-          const statusBadge = document.createElement("span");
-          statusBadge.classList.add("status-badge");
-          // Add specific class for styling based on status
-          statusBadge.classList.add(
-            movie.status
-              ? movie.status.toLowerCase().replace(/\s/g, "-")
-              : "plan-to-watch"
-          );
-          statusBadge.textContent = movie.status || "Plan to Watch";
-          movieCard.appendChild(statusBadge);
-
-          const cardLink = document.createElement("a");
-          cardLink.href = `/movie/${movie.id}`;
-          cardLink.classList.add("card-link"); // Add class for styling
-          cardLink.style.textDecoration = "none";
-          cardLink.style.color = "inherit";
-          cardLink.style.display = "block";
-          cardLink.style.height = "100%";
-
-          const poster = document.createElement("img");
-          poster.src = movie.poster_path;
-          poster.alt = movie.title;
-          poster.classList.add("poster-image");
-          poster.onerror = function () {
-            this.onerror = null;
-            this.src = "/images/your_logo_filename.png";
-          };
-
-          const movieInfoSummary = document.createElement("div");
-          movieInfoSummary.classList.add("movie-info-summary");
-
-          const titleElement = document.createElement("h2");
-          titleElement.textContent = movie.title;
-
-          const releaseYear = movie.release_date
-            ? new Date(movie.release_date).getFullYear()
-            : "N/A";
-          const releaseYearElement = document.createElement("p");
-          releaseYearElement.classList.add("release-year");
-          releaseYearElement.textContent = `Year: ${releaseYear}`;
-
-          const overviewOverlay = document.createElement("div");
-          overviewOverlay.classList.add("movie-overview-overlay");
-          const overviewText = document.createElement("p");
-          overviewText.textContent =
-            movie.overview || "No description available.";
-          overviewOverlay.appendChild(overviewText);
-
-          movieInfoSummary.appendChild(titleElement);
-          movieInfoSummary.appendChild(releaseYearElement);
-
-          cardLink.appendChild(poster);
-          cardLink.appendChild(movieInfoSummary);
-          cardLink.appendChild(overviewOverlay);
-
-          movieCard.appendChild(cardLink);
-          watchlistContent.appendChild(movieCard);
-        });
-        watchlistContent.classList.remove("hidden");
-        updateBulkActionVisibility();
-      }
-
-      // Function to sort movies
-      function sortMovies(movies, sortBy) {
-        return [...movies].sort((a, b) => {
-          let valA, valB;
-
-          switch (sortBy) {
-            case "added_at_desc":
-              valA = a.added_at ? a.added_at.toDate() : new Date(0); // Convert Firestore Timestamp to Date
-              valB = b.added_at ? b.added_at.toDate() : new Date(0);
-              return valB.getTime() - valA.getTime();
-            case "added_at_asc":
-              valA = a.added_at ? a.added_at.toDate() : new Date(0);
-              valB = b.added_at ? b.added_at.toDate() : new Date(0);
-              return valA.getTime() - valB.getTime();
-            case "release_date_desc":
-              // Prioritize 'year' for manual entries, otherwise use release_date
-              valA = a.year
-                ? a.year
-                : a.release_date
-                ? new Date(a.release_date).getFullYear()
-                : 0;
-              valB = b.year
-                ? b.year
-                : b.release_date
-                ? new Date(b.release_date).getFullYear()
-                : 0;
-              return valB - valA;
-            case "release_date_asc":
-              valA = a.year
-                ? a.year
-                : a.release_date
-                ? new Date(a.release_date).getFullYear()
-                : 0;
-              valB = b.year
-                ? b.year
-                : b.release_date
-                ? new Date(b.release_date).getFullYear()
-                : 0;
-              return valA - valB;
-            case "title_asc":
-              valA = a.title.toLowerCase();
-              valB = b.title.toLowerCase();
-              return valA.localeCompare(valB);
-            case "title_desc":
-              valA = a.title.toLowerCase();
-              valB = b.title.toLowerCase();
-              return valB.localeCompare(valA);
-            default:
-              return 0; // No sort
-          }
-        });
-      }
-
-      // Event listener for sorting dropdown
-      if (sortSelect) {
-        // Added check
-        sortSelect.addEventListener("change", () => {
-          const sortedMovies = sortMovies(allWatchlistMovies, sortSelect.value);
-          renderWatchlistMovies(sortedMovies);
-        });
-      }
-
-      // Bulk Remove Function
-      if (bulkRemoveButton) {
-        // Added check
-        bulkRemoveButton.addEventListener("click", async () => {
-          if (selectedMovieIds.size === 0) {
-            showMessageBox("No Selection", "Please select movies to remove.");
-            return;
-          }
-
-          if (
-            !confirm(
-              "Are you sure you want to remove the selected movies from your watchlist?"
-            )
-          ) {
-            return; // User cancelled
-          }
-
-          loadingIndicator.classList.remove("hidden");
-          let removedCount = 0;
-          const dbRef = db; // Use module-scoped db
-          const currentAppId = appId; // Use module-scoped appId
-          const currentUserId = userId; // Use module-scoped userId
-
-          try {
-            for (const movieIdToRemove of selectedMovieIds) {
-              const movieRef = doc(
-                dbRef,
-                `artifacts/${currentAppId}/users/${currentUserId}/watchlist`,
-                String(movieIdToRemove)
-              );
-              await deleteDoc(movieRef);
-              removedCount++;
-            }
-            showMessageBox(
-              "Success",
-              `${removedCount} movie(s) removed from your watchlist.`
-            );
-            selectedMovieIds.clear(); // Clear selection
-            await fetchAndDisplayWatchlist(); // Re-fetch and re-render
-          } catch (error) {
-            console.error("Error performing bulk remove:", error);
-            showMessageBox(
-              "Error",
-              `Failed to remove movies: ${error.message}`
-            );
-          } finally {
-            loadingIndicator.classList.add("hidden");
-          }
-        });
-      }
-
-      // Bulk Change Status Function
-      if (applyBulkStatusButton) {
-        // Added check
-        applyBulkStatusButton.addEventListener("click", async () => {
-          const newStatus = bulkStatusSelect.value;
-          if (selectedMovieIds.size === 0) {
-            showMessageBox("No Selection", "Please select movies to update.");
-            return;
-          }
-          if (!newStatus) {
-            showMessageBox(
-              "No Status Selected",
-              "Please select a new status from the dropdown."
-            );
-            return;
-          }
-
-          loadingIndicator.classList.remove("hidden");
-          let updatedCount = 0;
-          const dbRef = db; // Use module-scoped db
-          const currentAppId = appId; // Use module-scoped appId
-          const currentUserId = userId; // Use module-scoped userId
-
-          try {
-            for (const movieIdToUpdate of selectedMovieIds) {
-              const movieRef = doc(
-                dbRef,
-                `artifacts/${currentAppId}/users/${currentUserId}/watchlist`,
-                String(movieIdToUpdate)
-              );
-              await updateDoc(movieRef, {
-                status: newStatus,
-                updated_at: new Date(),
-              });
-              updatedCount++;
-            }
-            showMessageBox(
-              "Success",
-              `${updatedCount} movie(s) status updated to "${newStatus}".`
-            );
-            selectedMovieIds.clear(); // Clear selection
-            bulkStatusSelect.value = ""; // Reset dropdown
-            await fetchAndDisplayWatchlist(); // Re-fetch and re-render
-          } catch (error) {
-            console.error("Error performing bulk status update:", error);
-            showMessageBox(
-              "Error",
-              `Failed to update movie status: ${error.message}`
-            );
-          } finally {
-            loadingIndicator.classList.add("hidden");
-          }
-        });
-      }
-
-      // Function to fetch and display watchlist
-      async function fetchAndDisplayWatchlist() {
-        loadingIndicator.classList.remove("hidden");
-        authPrompt.classList.add("hidden");
-        watchlistContent.classList.add("hidden");
-        noMoviesMessage.classList.add("hidden");
-        watchlistControls.classList.add("hidden"); // Hide controls initially
-        watchlistContent.innerHTML = ""; // Clear previous content
-        selectedMovieIds.clear(); // Clear any existing selections
-        updateBulkActionVisibility(); // Hide bulk actions
-
-        // Wait until Firebase Auth and Firestore are initialized and ready
-        await new Promise((resolve) => {
-          const checkReadyInterval = setInterval(() => {
-            if (isAuthReady && db && auth) {
-              // Ensure auth is also initialized
-              clearInterval(checkReadyInterval);
-              resolve();
-            }
-          }, 100);
-        });
-
-        if (!userId) {
-          // If user is not logged in, redirect to login page
-          loadingIndicator.classList.add("hidden");
-          // authPrompt.classList.remove("hidden"); // No need to show prompt, just redirect
-          console.log("No user is logged in. Redirecting to login page.");
-          window.location.href = "/user/login";
-          return;
         }
 
-        try {
-          const watchlistCollectionRef = collection(
-            db,
-            `artifacts/${appId}/users/${userId}/watchlist`
-          );
-          const q = query(watchlistCollectionRef, orderBy("added_at", "desc")); // Added default order
+        // Function to sort movies
+        function sortMovies(movies, sortBy) {
+            return [...movies].sort((a, b) => {
+                let valA, valB;
 
-          const querySnapshot = await getDocs(q);
-          allWatchlistMovies = []; // Reset the global array
-          querySnapshot.forEach((docSnap) => {
-            allWatchlistMovies.push(docSnap.data());
-          });
-
-          if (allWatchlistMovies.length > 0) {
-            const currentSort = sortSelect.value || "added_at_desc"; // Default sort if none selected
-            const sortedMovies = sortMovies(allWatchlistMovies, currentSort);
-            renderWatchlistMovies(sortedMovies);
-          } else {
-            noMoviesMessage.classList.remove("hidden");
-          }
-        } catch (error) {
-          console.error("Error fetching watchlist:", error);
-          showMessageBox("Error", `Failed to load watchlist: ${error.message}`);
-          noMoviesMessage.classList.remove("hidden"); // Show empty message on error as well
-        } finally {
-          loadingIndicator.classList.add("hidden");
+                switch (sortBy) {
+                    case "added_at_desc":
+                        valA = a.added_at ? a.added_at.toDate() : new Date(0);
+                        valB = b.added_at ? b.added_at.toDate() : new Date(0);
+                        return valB.getTime() - valA.getTime();
+                    case "added_at_asc":
+                        valA = a.added_at ? a.added_at.toDate() : new Date(0);
+                        valB = b.added_at ? b.added_at.toDate() : new Date(0);
+                        return valA.getTime() - valB.getTime();
+                    case "release_date_desc":
+                        valA = a.year
+                            ? a.year
+                            : a.release_date
+                                ? new Date(a.release_date).getFullYear()
+                                : 0;
+                        valB = b.year
+                            ? b.year
+                            : b.release_date
+                                ? new Date(b.release_date).getFullYear()
+                                : 0;
+                        return valB - valA;
+                    case "release_date_asc":
+                        valA = a.year
+                            ? a.year
+                            : a.release_date
+                                ? new Date(a.release_date).getFullYear()
+                                : 0;
+                        valB = b.year
+                            ? b.year
+                            : b.release_date
+                                ? new Date(b.release_date).getFullYear()
+                                : 0;
+                        return valA - valB;
+                    case "title_asc":
+                        valA = a.title.toLowerCase();
+                        valB = b.title.toLowerCase();
+                        return valA.localeCompare(valB);
+                    case "title_desc":
+                        valA = a.title.toLowerCase();
+                        valB = b.title.toLowerCase();
+                        return valB.localeCompare(valA);
+                    default:
+                        return 0;
+                }
+            });
         }
-      }
 
-      // Initialize Firebase and set up authentication
-      document.addEventListener("DOMContentLoaded", async () => {
-        try {
-          // Get Firebase config and Canvas globals from EJS local variables
-          // Use the `firebaseConfig` object already declared from the server injection
-          const initialAuthToken = `<%- __initial_auth_token %>`; // Make sure __initial_auth_token is passed by server
-          appId = `<%- __app_id %>`; // Make sure __app_id is passed by server
+        // Consolidated function to apply both filtering and sorting, then render
+        function applySortAndFilter() {
+            const currentSort = sortSelect.value;
+            const currentFilter = filterStatusAndTypeSelect.value;
 
-          if (
-            Object.keys(firebaseConfig).length === 0 ||
-            !firebaseConfig.apiKey ||
-            !firebaseConfig.authDomain
-          ) {
-            console.error(
-              "Firebase config is empty or missing critical properties (apiKey, authDomain)."
-            );
-            showMessageBox(
-              "Firebase Error",
-              "Firebase configuration is missing or incomplete. Please check your server setup and .env file."
-            );
-            return;
-          }
+            let moviesToProcess = [...allWatchlistMovies];
 
-          // Initialize app only if it hasn't been initialized already
-          if (!getApps().length) {
-            app = initializeApp(firebaseConfig);
-            analytics = getAnalytics(app); // Initialize analytics
-            console.log("Firebase app initialized.");
-          } else {
-            app = getApps()[0]; // Get the already initialized app
-            analytics = getAnalytics(app); // Ensure analytics is also initialized with existing app
-            console.log(
-              "Firebase app already initialized, retrieving existing app."
-            );
-          }
+            if (currentFilter !== "all") {
+                const [filterType, filterValue] = currentFilter.split(":");
 
-          db = getFirestore(app); // Assign to module-scoped db
-          auth = getAuth(app); // Assign to module-scoped auth
+                moviesToProcess = moviesToProcess.filter(movie => {
+                    if (filterType === "status") {
+                        return (movie.status || "Plan to Watch") === filterValue;
+                    } else if (filterType === "type") {
+                        if (filterValue === "movie") {
+                            return (movie.media_type === 'movie' || (!movie.isManual && !movie.media_type) || (movie.isManual && movie.type === 'movie'));
+                        } else if (filterValue === "series") {
+                            return (movie.media_type === 'tv' || (movie.isManual && movie.type === 'series'));
+                        }
+                    } else if (filterType === "isManual" && filterValue === "true") {
+                        return movie.isManual === true;
+                    }
+                    return false;
+                });
+            }
 
-          // THIS IS THE CORRECT PLACE AND WAY TO USE onAuthStateChanged
-          onAuthStateChanged(auth, async (user) => {
-            if (user) {
-              userId = user.uid; // Assign to module-scoped userId
-              console.log("Firebase: User signed in:", user.email, user.uid);
+            displayedMovies = sortMovies(moviesToProcess, currentSort); // Update the global displayedMovies
+            renderWatchlistMovies(displayedMovies);
+
+            // Show/hide no movies message based on filtered results
+            if (displayedMovies.length === 0 && allWatchlistMovies.length > 0) {
+                noMoviesMessage.classList.remove("hidden");
+                noMoviesMessage.querySelector("p").textContent = "No movies match your current filter and sort criteria.";
+                watchlistContent.classList.add("hidden"); // Hide movie grid
+            } else if (allWatchlistMovies.length === 0) {
+                noMoviesMessage.classList.remove("hidden");
+                noMoviesMessage.querySelector("p").textContent = "Your watchlist is empty! Start by adding some movies!";
+                watchlistContent.classList.add("hidden"); // Hide movie grid
             } else {
-              userId = null; // Assign to module-scoped userId
-              console.log("Firebase: User signed out.");
+                noMoviesMessage.classList.add("hidden");
+                watchlistContent.classList.remove("hidden"); // Show movie grid
             }
-            isAuthReady = true; // Auth state has been determined
-            // IMPORTANT: fetchAndDisplayWatchlist will be called here based on the auth state
-            // It will handle the redirect if userId is null
-            fetchAndDisplayWatchlist();
-          });
-
-          // Handle initial sign-in for custom token or anonymous (if you use them)
-          // Note: For email/password login, you'd typically handle sign-in on the login page,
-          // and then auth state persistence (handled by Firebase SDK) would keep the user signed in
-          // on subsequent page loads like this one.
-          // If you *do* want to always sign in anonymously here as a fallback or for unauthenticated access:
-          // if (!auth.currentUser) { // Only sign in if not already authenticated
-          //    await signInAnonymously(auth);
-          //    console.log("Firebase: Signed in anonymously.");
-          // }
-
-          // If you use custom tokens for session management, this is where you'd sign in:
-          // if (initialAuthToken && initialAuthToken !== "null") {
-          //   // This part is more common for SSR with Firebase Auth if you want to
-          //   // use ID tokens generated on the server to sign in client-side.
-          //   // For email/password, Firebase client SDK handles persistence automatically.
-          //   try {
-          //     await signInWithCustomToken(auth, initialAuthToken);
-          //     console.log("Firebase: Signed in with custom token.");
-          //   } catch (tokenError) {
-          //     console.error("Error signing in with custom token:", tokenError);
-          //     // Potentially redirect to login if token is invalid
-          //     window.location.href = '/user/login';
-          //   }
-          // } else {
-          //   // If no custom token, and you want to ensure a user is signed in (even anonymously)
-          //   // you might add a signInAnonymously here if not already signed in.
-          //   // But it's generally better to let onAuthStateChanged handle redirects for unauthenticated users.
-          // }
-        } catch (error) {
-          console.error("Firebase initialization failed:", error);
-          showMessageBox(
-            "Firebase Error",
-            `Failed to initialize Firebase: ${error.message}. Check your console.`
-          );
-        }
-      });
-
-      // Manual Add Modal / Form Logic (Remains mostly the same, ensure DOM elements exist)
-      document.addEventListener("DOMContentLoaded", () => {
-        // Open the modal
-        if (addManuallyBtn) {
-          addManuallyBtn.addEventListener("click", () => {
-            manualAddModal.style.display = "block";
-            manualAddMessage.textContent = ""; // Clear previous messages
-            manualAddForm.reset(); // Clear form fields
-          });
         }
 
-        // Close the modal when the 'x' is clicked
-        // Make sure you have a close button inside manualAddModal with class 'close-button'
-        const manualAddModalCloseButton = manualAddModal
-          ? manualAddModal.querySelector(".close-button")
-          : null;
-        if (manualAddModalCloseButton) {
-          manualAddModalCloseButton.addEventListener("click", () => {
-            manualAddModal.style.display = "none";
-          });
+        // NEW: Function to generate plain text list from displayed movies
+        function generatePlainTextList(movies) {
+            if (movies.length === 0) {
+                return "Your watchlist is currently empty or no movies match the applied filters and sort criteria.\n";
+            }
+
+            let text = `My Watchlist - Filtered & Sorted List\n`;
+            text += `Generated on: ${new Date().toLocaleString()}\n`;
+            text += `Current Filter: ${filterStatusAndTypeSelect.options[filterStatusAndTypeSelect.selectedIndex].text}\n`;
+            text += `Current Sort: ${sortSelect.options[sortSelect.selectedIndex].text}\n`;
+            text += `----------------------------------------\n\n`;
+
+            movies.forEach((movie, index) => {
+                const title = movie.title || "N/A";
+                const year = movie.year || (movie.release_date ? new Date(movie.release_date).getFullYear() : "N/A");
+                const status = movie.status || "Plan to Watch";
+                const type = movie.type || (movie.isManual ? "Manual Entry" : (movie.media_type === 'tv' ? 'Series' : 'Movie'));
+                const genres = movie.genres && movie.genres.length > 0 ? movie.genres.join(", ") : "N/A";
+                const overview = movie.overview || "No description available.";
+
+                text += `${index + 1}. Title: ${title}\n`;
+                text += `   Year: ${year}\n`;
+                text += `   Status: ${status}\n`;
+                text += `   Type: ${type}\n`;
+                text += `   Genre(s): ${genres}\n`;
+                text += `   Overview: ${overview.substring(0, 150)}${overview.length > 150 ? '...' : ''}\n`; // Truncate long overviews
+                text += `----------------------------------------\n`;
+            });
+
+            return text;
         }
 
-        // Close the modal when clicking outside of it
-        window.addEventListener("click", (event) => {
-          if (event.target === manualAddModal) {
-            manualAddModal.style.display = "none";
-          }
-        });
+        // NEW: Function to trigger text file download
+        function downloadTextFile(text, filename) {
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a); // Append to body is necessary for Firefox
+            a.click();
+            document.body.removeChild(a); // Clean up
+            URL.revokeObjectURL(url); // Free up memory
+        }
 
-        // Handle form submission for manual add
-        // Manual Add Form Submission Logic
-        if (manualAddForm) {
-          manualAddForm.addEventListener("submit", async (event) => {
-            event.preventDefault(); // Prevent default form submission
+        // NEW: Function to parse plain text list into movie objects
+        function parsePlainTextList(text) {
+            const movies = [];
+            const movieBlocks = text.split('----------------------------------------\n').slice(1);
 
-            const title = document
-              .getElementById("manualMovieName")
-              .value.trim();
-            const year = document.getElementById("manualMovieYear").value;
-            const overview = manualMovieDescription.value.trim(); // Capture the new description
-            const status = manualMovieStatus.value;
-            const type = manualMovieType.value;
-            const genreString = manualMovieGenre.value.trim();
-            const genre = genreString
-              ? genreString.split(",").map((g) => g.trim())
-              : [];
+            movieBlocks.forEach(block => {
+                if (block.trim() === '') return;
 
-            if (!title) {
-              manualAddMessage.textContent = "Movie title is required.";
-              manualAddMessage.style.color = "red";
-              return;
+                const lines = block.split('\n').map(line => line.trim()).filter(line => line !== '');
+                const movie = {};
+
+                lines.forEach(line => {
+                    if (line.startsWith('Title:')) {
+                        movie.title = line.substring('Title:'.length).trim();
+                    } else if (line.startsWith('Year:')) {
+                        const yearStr = line.substring('Year:'.length).trim();
+                        movie.year = yearStr !== 'N/A' ? parseInt(yearStr, 10) : null;
+                    } else if (line.startsWith('Status:')) {
+                        movie.status = line.substring('Status:'.length).trim();
+                    } else if (line.startsWith('Type:')) {
+                        movie.type = line.substring('Type:'.length).trim();
+                        if (movie.type === "Manual Entry") {
+                            movie.isManual = true;
+                            movie.type = movie.type || 'movie';
+                        }
+                    } else if (line.startsWith('Genre(s):')) {
+                        const genresStr = line.substring('Genre(s):'.length).trim();
+                        movie.genres = genresStr !== 'N/A' ? genresStr.split(',').map(g => g.trim()) : [];
+                    } else if (line.startsWith('Overview:')) {
+                        movie.overview = line.substring('Overview:'.length).trim();
+                    }
+                });
+
+                movie.status = movie.status || "Plan to Watch";
+                movie.type = movie.type || "movie";
+                movie.genres = movie.genres || [];
+                movie.overview = movie.overview || "No description available.";
+                movie.isManual = movie.isManual || false;
+                movie.poster_path = movie.poster_path || null;
+                movie.media_type = movie.media_type || (movie.type === 'series' ? 'tv' : 'movie');
+
+                if (movie.year && !movie.release_date) {
+                    movie.release_date = `${movie.year}-01-01`;
+                }
+
+                if (movie.title) {
+                    movies.push(movie);
+                }
+            });
+            return movies;
+        }
+
+        // NEW: Function to upload movies to watchlist, checking for duplicates
+        async function uploadMoviesToWatchlist(moviesToUpload) {
+            if (!userId) {
+                showMessageBox("Authentication Required", "Please log in to upload movies to your watchlist.");
+                return;
             }
 
-            const user = auth.currentUser;
-            if (!user) {
-              manualAddMessage.textContent =
-                "You must be logged in to add movies.";
-              manualAddMessage.style.color = "red";
-              return;
-            }
-            const idToken = await user.getIdToken();
+            loadingIndicator.classList.remove("hidden");
+            let addedCount = 0;
+            let skippedCount = 0;
+            const currentAppId = appId;
+            const currentUserId = userId;
+            const watchlistCollectionRef = collection(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlist`);
 
             try {
-              // Send data to your backend with the ID token in the Authorization header
-              const response = await fetch("/movies/add-manual", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${idToken}`,
-                },
-                // Include 'overview' in the body
-                body: JSON.stringify({
-                  title,
-                  year,
-                  overview,
-                  status,
-                  type,
-                  genre,
-                }),
-              });
+                const existingMoviesSnapshot = await getDocs(watchlistCollectionRef);
+                const existingMovieTitles = new Set();
+                existingMoviesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    existingMovieTitles.add(`${data.title || ''}-${data.year || ''}`.toLowerCase());
+                });
 
-              const result = await response.json();
+                const idToken = await auth.currentUser.getIdToken();
 
-              if (response.ok) {
-                manualAddMessage.textContent =
-                  result.message || "Movie added successfully!";
-                manualAddMessage.style.color = "green";
-                setTimeout(async () => {
-                  manualAddModal.style.display = "none";
-                  await fetchAndDisplayWatchlist(); // Re-fetch and re-render
-                }, 500); // Give a little time for message to be read
-              } else {
-                manualAddMessage.textContent =
-                  result.message || "Error adding movie.";
-                manualAddMessage.style.color = "red";
-              }
+                for (const movieData of moviesToUpload) {
+                    const uniqueKey = `${movieData.title || ''}-${movieData.year || ''}`.toLowerCase();
+
+                    if (existingMovieTitles.has(uniqueKey)) {
+                        skippedCount++;
+                        console.log(`Skipping duplicate: ${movieData.title} (${movieData.year})`);
+                        continue;
+                    }
+
+                    const movieToAdd = {
+                        ...movieData,
+                        added_at: Timestamp.now(),
+                    };
+
+                    const response = await fetch("/movies/add-manual", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify(movieToAdd),
+                    });
+
+                    if (response.ok) {
+                        addedCount++;
+                        existingMovieTitles.add(uniqueKey);
+                    } else {
+                        const errorResult = await response.json();
+                        console.error(`Failed to add ${movieData.title}:`, errorResult.message);
+                    }
+                }
+
+                showMessageBox(
+                    "Upload Complete",
+                    `Successfully added ${addedCount} new movie(s) and skipped ${skippedCount} existing movie(s).`
+                );
+                await fetchAndDisplayWatchlist();
             } catch (error) {
-              console.error("Error adding movie manually:", error);
-              manualAddMessage.textContent =
-                "Network error or server unavailable.";
-              manualAddMessage.style.color = "red";
+                console.error("Error during upload process:", error);
+                showMessageBox("Upload Error", `Failed to upload list: ${error.message}`);
+            } finally {
+                loadingIndicator.classList.add("hidden");
             }
-          });
-        }
-      });
-
-      function applyFiltering(
-        moviesArray,
-        statusAndTypeCriterion,
-        stateCriterion
-      ) {
-        let filteredMovies = moviesArray;
-
-        // Apply filter from the primary 'Filter' dropdown (Status, Type, Manual)
-        if (statusAndTypeCriterion !== "all") {
-          if (statusAndTypeCriterion.startsWith("status:")) {
-            const status = statusAndTypeCriterion.split(":")[1];
-            filteredMovies = filteredMovies.filter(
-              (movie) => movie.status === status
-            );
-          } else if (statusAndTypeCriterion.startsWith("type:")) {
-            const type = statusAndTypeCriterion.split(":")[1];
-            filteredMovies = filteredMovies.filter(
-              (movie) => movie.type === type
-            );
-          } else if (statusAndTypeCriterion === "isManual:true") {
-            filteredMovies = filteredMovies.filter(
-              (movie) => movie.isManual === true
-            );
-          }
         }
 
-        // Apply filter from the NEW 'State' dropdown (direct status match)
-        // This will further filter results from the first dropdown
-        if (stateCriterion !== "all") {
-          filteredMovies = filteredMovies.filter(
-            (movie) => movie.status === stateCriterion
-          );
+        // Function to fetch and display watchlist
+        async function fetchAndDisplayWatchlist() {
+            console.log("fetchAndDisplayWatchlist called. isAuthReady:", isAuthReady, "db:", !!db, "userId:", userId);
+            loadingIndicator.classList.remove("hidden");
+            authPrompt.classList.add("hidden");
+            watchlistContent.classList.add("hidden");
+            noMoviesMessage.classList.add("hidden");
+            watchlistControls.classList.add("hidden");
+            watchlistContent.innerHTML = "";
+            selectedMovieIds.clear();
+            updateBulkActionVisibility();
+
+            // Wait until Firebase Auth and Firestore are initialized and ready
+            await new Promise((resolve) => {
+                const checkReadyInterval = setInterval(() => {
+                    if (isAuthReady && db && auth) {
+                        clearInterval(checkReadyInterval);
+                        resolve();
+                    }
+                }, 100);
+            });
+
+            if (!userId) {
+                console.log("fetchAndDisplayWatchlist: No userId, showing auth prompt and hiding loading.");
+                loadingIndicator.classList.add("hidden");
+                authPrompt.classList.remove("hidden");
+                if (addManuallyBtn) {
+                    addManuallyBtn.disabled = true;
+                }
+                return;
+            } else {
+                console.log("fetchAndDisplayWatchlist: userId is present, proceeding to fetch data.");
+                if (addManuallyBtn) {
+                    addManuallyBtn.disabled = false;
+                }
+            }
+
+            try {
+                const watchlistCollectionRef = collection(
+                    db,
+                    `artifacts/${appId}/users/${userId}/watchlist`
+                );
+                // Removed orderBy from here, as sorting is done client-side in applySortAndFilter
+                const q = query(watchlistCollectionRef);
+
+                const querySnapshot = await getDocs(q);
+                allWatchlistMovies = [];
+                querySnapshot.forEach((docSnap) => {
+                    allWatchlistMovies.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                applySortAndFilter(); // This will now handle rendering and noMoviesMessage logic
+                watchlistControls.classList.remove("hidden");
+
+            } catch (error) {
+                console.error("Error fetching watchlist:", error);
+                showMessageBox("Error", `Failed to load watchlist: ${error.message}`);
+                noMoviesMessage.classList.remove("hidden");
+                watchlistControls.classList.add("hidden");
+            } finally {
+                loadingIndicator.classList.add("hidden");
+                console.log("fetchAndDisplayWatchlist finished.");
+            }
         }
 
-        return filteredMovies;
-      }
+        // --- CONSOLIDATED DOMContentLoaded BLOCK ---
+        document.addEventListener("DOMContentLoaded", async () => {
+            // --- Firebase Initialization ---
+            try {
+                const initialAuthToken = `<%- __initial_auth_token || 'null' %>`;
+                appId = `<%- __app_id || 'default-app-id' %>`;
 
-      // --- Update the Main Function to Apply Sort & Filter and Render ---
-      // This function now needs to pass the new state filter value
-      function applySortAndFilterAndRender() {
-        let filteredMovies = applyFiltering(
-          allWatchlistMovies,
-          filterStatusAndTypeSelect.value,
-          filterStateSelect.value
-        );
-        let sortedAndFilteredMovies = sortMovies(
-          filteredMovies,
-          sortSelect.value
-        );
-        renderWatchlistMovies(sortedAndFilteredMovies);
+                if (
+                    Object.keys(firebaseConfig).length === 0 ||
+                    !firebaseConfig.apiKey ||
+                    !firebaseConfig.authDomain
+                ) {
+                    console.error("Firebase config is empty or missing critical properties (apiKey, authDomain).");
+                    showMessageBox("Firebase Error", "Firebase configuration is missing or incomplete. Please check your server setup and .env file.");
+                    loadingIndicator.classList.add("hidden");
+                    return;
+                }
 
-        // Show/hide no movies message
-        if (
-          sortedAndFilteredMovies.length === 0 &&
-          allWatchlistMovies.length > 0
-        ) {
-          noMoviesMessage.classList.remove("hidden");
-          noMoviesMessage.querySelector("p").textContent =
-            "No movies match your current filter and sort criteria.";
-        } else if (allWatchlistMovies.length === 0) {
-          noMoviesMessage.classList.remove("hidden");
-          noMoviesMessage.querySelector("p").textContent =
-            "Your watchlist is empty. Start by adding some movies!";
-        } else {
-          noMoviesMessage.classList.add("hidden");
-        }
-      }
+                if (!getApps().length) {
+                    app = initializeApp(firebaseConfig);
+                    analytics = getAnalytics(app);
+                    console.log("Firebase app initialized.");
+                } else {
+                    app = getApps()[0];
+                    analytics = getAnalytics(app);
+                    console.log("Firebase app already initialized, retrieving existing app.");
+                }
 
-      filterStatusAndTypeSelect.addEventListener(
-        "change",
-        applySortAndFilterAndRender
-      );
+                db = getFirestore(app);
+                auth = getAuth(app);
 
-      // --- Add Event Listener for the New State Filter Dropdown ---
-      filterStateSelect.addEventListener("change", applySortAndFilterAndRender); // NEW LINE
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Firebase: User signed in:", user.email || "Anonymous", user.uid);
+                        authPrompt.classList.add('hidden');
+                        watchlistControls.classList.remove('hidden');
+                        if (addManuallyBtn) {
+                            addManuallyBtn.disabled = false;
+                        }
+                    } else {
+                        userId = null;
+                        console.log("Firebase: User signed out. Showing auth prompt.");
+                        authPrompt.classList.remove('hidden');
+                        watchlistControls.classList.add('hidden');
+                        watchlistContent.classList.add('hidden');
+                        noMoviesMessage.classList.add('hidden');
+                        loadingIndicator.classList.add('hidden');
+                        if (addManuallyBtn) {
+                            addManuallyBtn.disabled = true;
+                        }
+                    }
+                    isAuthReady = true;
+                    console.log("isAuthReady set to true. Calling fetchAndDisplayWatchlist.");
+                    fetchAndDisplayWatchlist(); // This is called after auth state is determined
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                showMessageBox("Firebase Error", `Failed to initialize Firebase: ${error.message}. Check your console.`);
+                loadingIndicator.classList.add("hidden");
+            }
+
+            // --- UI Event Listeners (All consolidated here) ---
+
+            // Message Box Close Button
+            if (closeMessageBox) {
+                closeMessageBox.addEventListener("click", hideMessageBox);
+                console.log("closeMessageBox listener attached.");
+            } else {
+                console.error("ERROR: closeMessageBox element not found. Check HTML ID.");
+            }
+
+            // Manual Add Button
+            if (addManuallyBtn) {
+                addManuallyBtn.addEventListener("click", () => {
+                    manualAddModal.style.display = "block";
+                    manualAddMessage.textContent = "";
+                    manualAddForm.reset();
+                });
+                console.log("addManuallyBtn listener attached.");
+            } else {
+                console.error("ERROR: addManuallyBtn element not found. Check HTML ID.");
+            }
+
+            // Manual Add Modal Close Button
+            const manualAddModalCloseButton = manualAddModal
+                ? manualAddModal.querySelector(".close-button")
+                : null;
+            if (manualAddModalCloseButton) {
+                manualAddModalCloseButton.addEventListener("click", () => {
+                    manualAddModal.style.display = "none";
+                });
+                console.log("manualAddModal close button listener attached.");
+            } else {
+                console.error("ERROR: close-button inside manualAddModal not found. Check HTML class.");
+            }
+
+            // Close the modal when clicking outside of it
+            window.addEventListener("click", (event) => {
+                if (event.target === manualAddModal) {
+                    manualAddModal.style.display = "none";
+                }
+            });
+            console.log("window click listener for manualAddModal attached.");
+
+            // Manual Add Form Submit
+            if (manualAddForm) {
+                manualAddForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+
+                    const title = manualMovieName.value.trim();
+                    const year = manualMovieYear.value;
+                    const overview = manualMovieDescription.value.trim();
+                    const status = manualMovieStatus.value;
+                    const type = manualMovieType.value;
+                    const genreString = manualMovieGenre.value.trim();
+                    const genres = genreString ? genreString.split(",").map((g) => g.trim()) : [];
+
+                    if (!title) {
+                        manualAddMessage.textContent = "Movie title is required.";
+                        manualAddMessage.style.color = "red";
+                        return;
+                    }
+
+                    const user = auth.currentUser;
+                    if (!user) {
+                        manualAddMessage.textContent = "You must be logged in to add movies.";
+                        manualAddMessage.style.color = "red";
+                        return;
+                    }
+                    const idToken = await user.getIdToken();
+
+                    manualAddMessage.textContent = "Adding movie...";
+                    manualAddMessage.style.color = "blue";
+
+                    try {
+                        const response = await fetch("/movies/add-manual", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${idToken}`,
+                            },
+                            body: JSON.stringify({
+                                title,
+                                year: year ? parseInt(year, 10) : null,
+                                overview,
+                                status,
+                                type,
+                                genres,
+                            }),
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            manualAddMessage.textContent = result.message || "Movie added successfully!";
+                            manualAddMessage.style.color = "green";
+                            setTimeout(async () => {
+                                manualAddModal.style.display = "none";
+                                await fetchAndDisplayWatchlist();
+                            }, 500);
+                        } else {
+                            manualAddMessage.textContent = result.message || "Error adding movie.";
+                            manualAddMessage.style.color = "red";
+                        }
+                    } catch (error) {
+                        console.error("Error adding movie manually:", error);
+                        manualAddMessage.textContent = "Network error or server unavailable.";
+                        manualAddMessage.style.color = "red";
+                    }
+                });
+                console.log("manualAddForm submit listener attached.");
+            } else {
+                console.error("ERROR: manualAddForm element not found. Check HTML ID.");
+            }
+
+            // Sort Dropdown
+            const localSortSelect = document.getElementById("sortSelect");
+            if (localSortSelect) {
+                localSortSelect.addEventListener("change", applySortAndFilter);
+                console.log("sortSelect listener attached.");
+            } else {
+                console.error("ERROR: sortSelect element not found. Check HTML ID.");
+            }
+
+            // Filter Status and Type Dropdown
+            const localFilterStatusAndTypeSelect = document.getElementById("filterStatusAndTypeSelect");
+            if (localFilterStatusAndTypeSelect) {
+                localFilterStatusAndTypeSelect.addEventListener("change", applySortAndFilter);
+                console.log("filterStatusAndTypeSelect listener attached.");
+            } else {
+                console.error("ERROR: filterStatusAndTypeSelect element not found. Check HTML ID.");
+            }
+
+            // Download List Button Event Listener
+            const localDownloadListBtn = document.getElementById("downloadListBtn");
+            if (localDownloadListBtn) {
+                localDownloadListBtn.addEventListener("click", () => {
+                    if (displayedMovies.length === 0) {
+                        showMessageBox("No Movies to Download", "Your current filtered list is empty. Add some movies or adjust your filters.");
+                        return;
+                    }
+                    const plainText = generatePlainTextList(displayedMovies);
+                    const date = new Date().toISOString().slice(0, 10);
+                    const filename = `MyWatchlist_Filtered_${date}.txt`;
+                    downloadTextFile(plainText, filename);
+                    showMessageBox("Download Started", "Your filtered watchlist is being downloaded.");
+                });
+                console.log("downloadListBtn listener attached.");
+            } else {
+                console.error("ERROR: downloadListBtn element not found. Check HTML ID.");
+            }
+
+            // Upload List Button Event Listener
+            const localUploadListBtn = document.getElementById("uploadListBtn");
+            const localFileInput = document.getElementById("fileInput");
+            if (localUploadListBtn && localFileInput) {
+                localUploadListBtn.addEventListener("click", () => {
+                    localFileInput.click();
+                });
+                localFileInput.addEventListener("change", (event) => {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = async (e) => {
+                            const textContent = e.target.result;
+                            const moviesToUpload = parsePlainTextList(textContent);
+                            if (moviesToUpload.length > 0) {
+                                await uploadMoviesToWatchlist(moviesToUpload);
+                            } else {
+                                showMessageBox("No Movies Found", "The uploaded file does not contain any recognizable movie entries.");
+                            }
+                            localFileInput.value = '';
+                        };
+                        reader.onerror = () => {
+                            showMessageBox("File Read Error", "Could not read the file.");
+                        };
+                        reader.readAsText(file);
+                    }
+                });
+                console.log("uploadListBtn and fileInput listeners attached.");
+            } else {
+                console.error("ERROR: uploadListBtn or fileInput element not found. Check HTML IDs.");
+            }
+
+            // Bulk Action Buttons
+            const localBulkRemoveButton = document.getElementById("bulkRemoveButton");
+            if (localBulkRemoveButton) {
+                localBulkRemoveButton.addEventListener("click", async () => {
+                    if (selectedMovieIds.size === 0) {
+                        showMessageBox("No Selection", "Please select movies to remove.");
+                        return;
+                    }
+                    showMessageBox(
+                        "Confirm Removal",
+                        "Are you sure you want to remove the selected movies from your watchlist?",
+                        true,
+                        async () => {
+                            loadingIndicator.classList.remove("hidden");
+                            let removedCount = 0;
+                            const currentAppId = appId;
+                            const currentUserId = userId;
+                            try {
+                                for (const movieIdToRemove of selectedMovieIds) {
+                                    const movieRef = doc(
+                                        db,
+                                        `artifacts/${currentAppId}/users/${currentUserId}/watchlist`,
+                                        String(movieIdToRemove)
+                                    );
+                                    await deleteDoc(movieRef);
+                                    removedCount++;
+                                }
+                                showMessageBox("Success", `${removedCount} movie(s) removed from your watchlist.`);
+                                selectedMovieIds.clear();
+                                await fetchAndDisplayWatchlist();
+                            } catch (error) {
+                                console.error("Error performing bulk remove:", error);
+                                showMessageBox("Error", `Failed to remove movies: ${error.message}`);
+                            } finally {
+                                loadingIndicator.classList.add("hidden");
+                            }
+                        }
+                    );
+                });
+                console.log("bulkRemoveButton listener attached.");
+            } else {
+                console.error("ERROR: bulkRemoveButton element not found. Check HTML ID.");
+            }
+
+            const localApplyBulkStatusButton = document.getElementById("applyBulkStatusButton");
+            if (localApplyBulkStatusButton) {
+                localApplyBulkStatusButton.addEventListener("click", async () => {
+                    const newStatus = bulkStatusSelect.value;
+                    if (selectedMovieIds.size === 0) {
+                        showMessageBox("No Selection", "Please select movies to update.");
+                        return;
+                    }
+                    if (!newStatus) {
+                        showMessageBox("No Status Selected", "Please select a new status from the dropdown.");
+                        return;
+                    }
+
+                    loadingIndicator.classList.remove("hidden");
+                    let updatedCount = 0;
+                    const currentAppId = appId;
+                    const currentUserId = userId;
+
+                    try {
+                        for (const movieIdToUpdate of selectedMovieIds) {
+                            const movieRef = doc(
+                                db,
+                                `artifacts/${currentAppId}/users/${currentUserId}/watchlist`,
+                                String(movieIdToUpdate)
+                            );
+                            await updateDoc(movieRef, {
+                                status: newStatus,
+                                updated_at: Timestamp.now(),
+                            });
+                            updatedCount++;
+                        }
+                        showMessageBox("Success", `${updatedCount} movie(s) status updated to "${newStatus}".`);
+                        selectedMovieIds.clear();
+                        bulkStatusSelect.value = "";
+                        await fetchAndDisplayWatchlist();
+                    } catch (error) {
+                        console.error("Error performing bulk status update:", error);
+                        showMessageBox("Error", `Failed to update movie status: ${error.message}`);
+                    } finally {
+                        loadingIndicator.classList.add("hidden");
+                    }
+                });
+                console.log("applyBulkStatusButton listener attached.");
+            } else {
+                console.error("ERROR: applyBulkStatusButton element not found. Check HTML ID.");
+            }
+        }); // End of CONSOLIDATED DOMContentLoaded
     </script>
   </body>
 </html>

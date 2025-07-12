@@ -793,3 +793,12 @@ h1 {
     /* ... existing styles ... */
     min-height: 360px; /* Adjusted down slightly as there's less default content */
 }
+
+#downloadListBtn{
+    background-color: #007bff;
+    color: white;
+}
+#uploadListBtn{
+    background-color: #007bff;
+    color: white;
+}
