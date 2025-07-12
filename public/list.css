@@ -1,595 +1,795 @@
-/* Import Google Font - Inter */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
-
-/* --- Base Styles --- */
+/* General Body and Container Styles - (No change needed here from previous version, keeping for context) */
 body {
-  font-family: "Inter", sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f7f6; /* Light background */
-  color: #333;
-  line-height: 1.6;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    color: #333;
 }
 
 .container {
-  max-width: 1200px;
-  margin: 20px auto;
-  padding: 0 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 h1 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 30px;
-  font-size: 2.5rem;
-  font-weight: 700;
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+    font-weight: 700;
 }
 
-/* --- Navigation Bar --- */
+/* Navbar Styles - (No change needed here from previous version) */
 .navbar {
-  background-color: #2c3e50; /* Darker blue/grey */
-  padding: 1rem 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #34495e;
+    padding: 15px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
 }
 
 .nav-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: center; /* Center nav links */
-  gap: 20px;
-  padding: 0 20px;
-  flex-wrap: wrap; /* Allow nav items to wrap on smaller screens */
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 25px;
 }
 
 .nav-link {
-  color: #ecf0f1; /* Light grey/blue */
-  text-decoration: none;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+    color: #ecf0f1;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1em;
+    padding: 5px 10px;
+    transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .nav-link:hover,
 .nav-link.active {
-  background-color: #34495e; /* Slightly lighter on hover */
-  color: #ffffff;
+    color: #1abc9c;
+    transform: translateY(-2px);
 }
 
-/* --- Loading and Auth Prompt --- */
-.loading-indicator,
-.auth-prompt,
-.no-content-message {
-  text-align: center;
-  padding: 20px;
-  margin: 30px auto;
-  background-color: #e0f2f7; /* Light blue */
-  border: 1px solid #b2ebf2;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  color: #2196f3;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.auth-prompt h2 {
-  color: #1976d2;
-  margin-top: 0;
-  font-size: 1.8rem;
-}
-
-.auth-prompt p {
-  color: #424242;
-  margin-bottom: 20px;
-}
-
-.auth-links a {
-  display: inline-block;
-  background-color: #42a5f5; /* Blue */
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  text-decoration: none;
-  margin: 0 10px;
-  transition: background-color 0.3s ease;
-}
-
-.auth-links a:hover {
-  background-color: #1e88e5; /* Darker blue on hover */
-}
-
-.hidden {
-  display: none !important;
-}
-
-/* --- Watchlist Controls (Sort, Filter, Buttons) --- */
+/* Control Bar (Sort, Filter, Add Buttons) - (No change needed here from previous version) */
 .watchlist-controls {
-  display: flex;
-  flex-wrap: wrap; /* Allow items to wrap to the next line */
-  gap: 15px; /* Spacing between controls */
-  justify-content: center; /* Center controls */
-  align-items: center;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: #ffffff; /* White background */
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08); /* More prominent shadow */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #eef4f7;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    align-items: center;
 }
 
-/* --- Dropdown Selects --- */
-.control-select {
-  padding: 0.65rem 1rem;
-  border: 1px solid #d1d5db; /* Light grey border */
-  border-radius: 0.5rem; /* Rounded corners */
-  font-size: 1rem;
-  line-height: 1.5;
-  background-color: #fff;
-  color: #333;
-  /* Custom arrow for cross-browser consistency */
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg fill="%234B5563" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 0.7em top 50%, 0 0;
-  background-size: 0.65em auto, 100%;
-  cursor: pointer;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  flex-grow: 1; /* Allow selects to grow within flex container */
-  max-width: 250px; /* Limit max width */
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.control-select:focus {
-  border-color: #6366f1; /* Tailwind-like blue on focus */
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5); /* Focus ring */
+.control-group label {
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
 }
 
-/* --- Buttons --- */
+#sortSelect,
+#filterStatusAndTypeSelect,
+#bulkStatusSelect {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #ffffff;
+    font-size: 1em;
+    color: #333;
+    min-width: 180px;
+    cursor: pointer;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#sortSelect:focus,
+#filterStatusAndTypeSelect:focus,
+#bulkStatusSelect:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+/* Buttons - (No change needed here from previous version) */
 .btn {
-  padding: 0.65rem 1.25rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.2s ease;
-  white-space: nowrap; /* Prevent button text from wrapping */
-  display: flex; /* Use flex to align content if needed */
-  align-items: center;
-  justify-content: center;
-  text-decoration: none; /* Remove underline from anchor inside button */
-  color: inherit; /* Inherit color for anchor inside button */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
 }
 
 .btn-primary {
-  background-color: #3498db; /* Blue */
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #2980b9; /* Darker blue */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.btn-success {
-  background-color: #2ecc71; /* Green */
-  color: white;
-}
-
-.btn-success:hover {
-  background-color: #27ae60; /* Darker green */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.btn-secondary {
-    background-color: #6c757d; /* Grey */
+    background-color: #007bff;
     color: white;
 }
 
-.btn-secondary:hover {
-    background-color: #5a6268; /* Darker grey */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.btn-primary:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
 }
 
-.btn-danger {
-  background-color: #e74c3c; /* Red */
-  color: white;
+.btn-success {
+    background-color: #28a745;
+    color: white;
 }
 
-.btn-danger:hover {
-  background-color: #c0392b; /* Darker red */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.btn-success:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
 }
 
-/* Specific styling for the anchor within Search button */
-#addBySearchBtn a {
-  text-decoration: none;
-  color: inherit;
-  display: block; /* Make the anchor fill the button */
-  padding: 0; /* Remove default padding from anchor */
+/* Bulk Action Buttons - (No change needed here from previous version) */
+.bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 20px;
 }
 
-/* --- Movie List Container --- */
+#applyBulkStatusButton,
+#bulkRemoveButton {
+    background-color: #6c757d;
+    color: white;
+}
+
+#applyBulkStatusButton:hover,
+#bulkRemoveButton:hover {
+    background-color: #5a6268;
+}
+
+/* Movie List Container (Grid) - (Slight adjustment for grid item width) */
 .movie-list-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 25px;
-  padding: 20px 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    padding: 0;
+    list-style: none;
 }
 
-/* --- Movie Card --- */
-.movie-card {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  position: relative;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column; /* Stack content vertically */
-  height: 100%; /* Ensure cards are same height in a row */
+/* --- KEY CHANGES START HERE --- */
+
+/* Individual Movie Item */
+.movie-item {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    position: relative;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    overflow: hidden;
+    /* Define initial height to avoid jump when content appears/disappears */
+    min-height: 400px; /* Adjust based on poster + default content height */
 }
 
-.movie-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+.movie-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
-.movie-card.selected {
-  outline: 3px solid #6366f1; /* Highlight selected cards */
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+/* Checkbox */
+.movie-checkbox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #007bff;
 }
 
-.card-link {
-  display: block; /* Make the entire card clickable */
-  text-decoration: none;
-  color: inherit;
-  flex-grow: 1; /* Allow link content to grow */
-  display: flex;
-  flex-direction: column;
+/* Movie Poster */
+.movie-poster {
+    width: 100%;
+    max-width: 180px;
+    height: 270px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-.poster-image {
-  width: 100%;
-  height: 300px; /* Fixed height for posters */
-  object-fit: cover; /* Crop to fit */
-  border-bottom: 1px solid #eee;
-  display: block;
+/* Movie Info Container */
+.movie-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    /* Default height for visible content */
+    min-height: 70px; /* Adjust this to fit title and year */
+    overflow: hidden; /* Crucial for hiding overflowing content */
+    padding-bottom: 5px; /* Small buffer */
 }
 
-.custom-manual-poster {
-  object-fit: contain; /* Contain for default image */
-  background-color: #f0f2f5; /* Light background for default image */
+.movie-info h3 {
+    margin: 0 0 5px 0; /* Reduced margin */
+    font-size: 1.3em;
+    color: #2c3e50;
+    line-height: 1.3;
+    min-height: 2.6em; /* Consistent height for title */
 }
 
-.movie-info-summary {
-  padding: 15px;
-  flex-grow: 1; /* Allow info to take remaining space */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* Push year to bottom if content varies */
+/* Hide these paragraphs by default */
+.movie-info p {
+    margin: 0 0 4px 0;
+    font-size: 0.9em;
+    color: #555;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.3s ease, max-height 0.3s ease;
 }
 
-.movie-info-summary h2 {
-  font-size: 1.25rem;
-  margin: 0 0 8px 0;
-  color: #2c3e50;
-  line-height: 1.3;
-  min-height: 2.6em; /* Ensure consistent height for titles */
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* Limit title to 2 lines */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Movie Overview - Hidden by default, shown on hover */
+.movie-overview {
+    position: absolute;
+    top: 0; /* Position relative to .movie-info */
+    left: 0;
+    width: 100%;
+    height: 100%; /* Cover the entire info area */
+    background-color: rgba(255, 255, 255, 0.98); /* Less transparent white overlay */
+    padding: 15px;
+    box-sizing: border-box;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    text-align: left;
+    font-size: 0.88em;
+    color: #444;
+    line-height: 1.5;
+    border-radius: 8px;
+    overflow-y: auto;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
 }
 
-.movie-info-summary .release-year {
-  font-size: 0.9rem;
-  color: #7f8c8d;
-  margin-top: auto; /* Push to bottom */
+/* Show overview on movie-item hover */
+.movie-item:hover .movie-overview {
+    opacity: 1;
+    visibility: visible;
 }
 
-.movie-overview-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.85);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none; /* Allow clicks to pass through when hidden */
-  box-sizing: border-box;
-  text-align: center;
+/* Show other info on movie-item hover */
+.movie-item:hover .movie-info p {
+    opacity: 1;
+    max-height: 100px; /* Allow content to show, adjust as needed */
+    margin-bottom: 4px;
 }
 
-.movie-card:hover .movie-overview-overlay {
-  opacity: 1;
-  pointer-events: auto; /* Enable clicks when visible */
+/* The "Added" line and Manual tag are part of .movie-info p, so they are handled */
+.manual-tag {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 0.7em;
+    font-weight: 600;
+    margin-left: 8px;
+    white-space: nowrap;
 }
 
-.movie-overview-overlay p {
-  font-size: 0.95rem;
-  max-height: 90%;
-  overflow-y: auto;
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+/* Movie Actions - No significant changes, already optimized */
+.movie-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    align-items: stretch;
+    margin-top: 10px;
 }
 
-.movie-overview-overlay p::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+.remove-btn {
+    background-color: #dc3545;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* --- Checkbox and Status Badge --- */
-.checkbox-container {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.remove-btn:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
 }
 
-.checkbox-container input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: #3498db; /* Blue checkmark */
+.status-select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    font-size: 0.9em;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333333%22%20d%3D%22M287%2C114.7L154.7%2C247.1c-2.4%2C2.4-5.6%2C3.7-9%2C3.7c-3.4%2C0-6.6-1.3-9-3.7L5.4%2C114.7c-4.9-4.9-4.9-12.8%2C0-17.7s12.8-4.9%2C17.7%2C0L145%2C215.3c-0.1-0.1-0.1-0.1-0.1-0.1c-0.1-0.1-0.1-0.1-0.1-0.1l-0.1-0.1c-0.1-0.1-0.1-0.1-0.1-0.1c-0.1-0.1-0.1-0.1-0.1-0.1L269.3%2C97c4.9-4.9%2C12.8-4.9%2C17.7%2C0C291.9%2C101.9%2C291.9%2C109.8%2C287%2C114.7z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 10px;
+    padding-right: 25px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.status-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: #3498db; /* Default status color */
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  z-index: 5;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.status-select:focus {
+    border-color: #007bff;
+    outline: none;
 }
 
-/* Status specific colors */
-.plan-to-watch {
-  background-color: #3498db; /* Blue */
+/* Status-specific border colors (No change needed here from previous version) */
+.status-plan-to-watch {
+    border-left: 6px solid #6c757d;
 }
-.watching {
-  background-color: #f39c12; /* Orange */
+.status-watching {
+    border-left: 6px solid #ffc107;
 }
-.completed {
-  background-color: #27ae60; /* Green */
+.status-watched {
+    border-left: 6px solid #28a745;
 }
-.dropped {
-  background-color: #e74c3c; /* Red */
+.status-on-hold {
+    border-left: 6px solid #17a2b8;
+}
+.status-dropped {
+    border-left: 6px solid #dc3545;
 }
 
-/* --- Message Box --- */
+/* Utility classes (No change needed here from previous version) */
+.hidden {
+    display: none !important;
+}
+
+.loading-indicator,
+.no-content-message,
+.auth-prompt {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.3em;
+    color: #666;
+    background-color: #eef4f7;
+    border-radius: 10px;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.auth-prompt h2 {
+    color: #007bff;
+    font-size: 1.8em;
+    margin-bottom: 15px;
+}
+
+.auth-prompt p {
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.auth-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.auth-links a {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.auth-links a:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+/* Message Box Styles (No change needed here from previous version) */
 .message-box {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  width: 90%;
-  max-width: 400px;
-  z-index: 1001;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-out;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 .message-box.show {
-  opacity: 1;
-  visibility: visible;
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
 }
 
 .message-box .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  border-bottom: 1px solid #eee;
-  background-color: #f7f7f7;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
 }
 
-.message-box .header h3 {
-  margin: 0;
-  color: #333;
-  font-size: 1.3rem;
+.message-box h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5em;
+    font-weight: 700;
 }
 
 .message-box .close-button {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #aaa;
-  cursor: pointer;
-  padding: 0 5px;
-  line-height: 1;
+    background: none;
+    border: none;
+    font-size: 2em;
+    color: #aaa;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s ease;
 }
 
 .message-box .close-button:hover {
-  color: #333;
+    color: #666;
 }
 
 .message-box p {
-  padding: 20px;
-  margin: 0;
-  color: #555;
-  font-size: 1rem;
+    margin: 0;
+    font-size: 1.1em;
+    color: #555;
+    line-height: 1.6;
 }
 
-/* --- Modal Styles (Manual Add) --- */
+/* Manual Add Modal Styles (Re-applied with better aesthetics) - (No change needed here from previous version) */
 .modal {
-  display: none; /* Controlled by JS */
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
-  display: flex; /* Use flex to center content */
-  align-items: center;
-  justify-content: center;
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-content {
-  background-color: #fff;
-  margin: auto; /* Centered by flex */
-  padding: 25px;
-  border: 1px solid #888;
-  width: 90%;
-  max-width: 550px;
-  border-radius: 10px;
-  position: relative;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  animation: slideIn 0.3s ease-out forwards; /* Simple animation */
+    background-color: #fefefe;
+    padding: 30px;
+    border: 1px solid #888;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 550px;
+    position: relative;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    animation: fadeInScale 0.3s ease-out;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .modal-content .close-button {
-  color: #aaa;
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  font-size: 32px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: color 0.2s ease;
+    color: #aaa;
+    float: right;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    transition: color 0.3s ease;
 }
 
 .modal-content .close-button:hover,
 .modal-content .close-button:focus {
-  color: #333;
-  text-decoration: none;
+    color: #333;
+    text-decoration: none;
 }
 
 .modal-content h2 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 25px;
-  font-size: 1.8rem;
+    text-align: center;
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 2em;
 }
 
 .form-group {
-  margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #555;
-  font-size: 0.95rem;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
 }
 
 .form-control {
-  width: 100%;
-  padding: 12px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    width: calc(100% - 20px);
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .form-control:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-  outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+    outline: none;
+}
+
+.modal-content button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    font-size: 1.1em;
+    font-weight: 700;
+    border-radius: 8px;
 }
 
 #manualAddMessage {
-  margin-top: 15px;
-  text-align: center;
-  font-weight: 600;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 1em;
+    font-weight: 600;
 }
 
-/* --- Responsive Adjustments --- */
+
+/* Responsive Adjustments - (Updated for new card layout) */
 @media (max-width: 768px) {
-  h1 {
-    font-size: 2rem;
-  }
+    .container {
+        padding: 15px;
+        margin: 15px auto;
+    }
 
-  .nav-container {
-    flex-direction: column;
-    align-items: center;
-  }
+    h1 {
+        font-size: 2em;
+    }
 
-  .nav-link {
-    width: 100%;
-    text-align: center;
-  }
+    .nav-container {
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+    }
 
-  .watchlist-controls {
-    flex-direction: column;
-    align-items: stretch; /* Stretch items to fill width */
-    padding: 0.75rem;
-    gap: 10px; /* Reduce gap on small screens */
-  }
+    .watchlist-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
 
-  .control-select,
-  .btn {
-    width: 100%; /* Make dropdowns and buttons full width */
-    max-width: none; /* Remove max-width restriction */
-  }
+    .control-group, .bulk-actions {
+        flex-direction: column;
+        align-items: stretch;
+        margin-left: 0;
+    }
 
-  .movie-list-container {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Smaller cards */
-    gap: 15px;
-  }
+    #sortSelect,
+    #filterStatusAndTypeSelect,
+    #bulkStatusSelect {
+        width: 100%;
+        min-width: unset;
+    }
 
-  .poster-image {
-    height: 250px; /* Adjust poster height for smaller screens */
-  }
+    .movie-list-container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    .movie-item {
+        padding: 12px;
+        min-height: 380px; /* Adjust min-height for mobile */
+    }
+
+    .movie-poster {
+        max-width: 150px;
+        height: 225px;
+    }
+
+    .movie-overview {
+        padding: 10px;
+        font-size: 0.85em;
+    }
+
+    .movie-actions {
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 10px;
+    }
 }
 
 @media (max-width: 480px) {
-  .container {
-    margin: 10px auto;
-    padding: 0 10px;
-  }
+    .movie-list-container {
+        grid-template-columns: 1fr;
+    }
 
-  h1 {
-    font-size: 1.8rem;
-  }
+    .movie-poster {
+        max-width: 180px;
+        height: 270px;
+    }
+}
+/* Add to your list.css */
+.movie-poster-link {
+    display: block; /* Ensures the whole image is clickable */
+    line-height: 0; /* Remove extra space below image */
+    text-decoration: none; /* No underline */
+    color: inherit; /* Inherit color from parent */
+    /* You might want a subtle hover effect if desired, like: */
+    /* transform: scale(1.02); */
+    /* transition: transform 0.2s ease; */
+}
 
-  .movie-list-container {
-    grid-template-columns: 1fr; /* Single column layout on very small screens */
-  }
-  .poster-image {
-    height: auto; /* Auto height to maintain aspect ratio on single column */
-  }
-  .movie-info-summary h2 {
-    font-size: 1.1rem;
-  }
+.movie-title-link {
+    text-decoration: none; /* No underline for title */
+    color: inherit; /* Inherit color from h3 */
+}
+
+.movie-title-link:hover {
+    color: #007bff; /* A subtle hover color for the title */
+}
+
+/* Also ensure your .movie-overview is a div, as suggested in previous code block */
+/* (It was previously a p, which is not ideal for containing a scrollable area within the hover state) */
+.movie-overview {
+    /* ... existing styles ... */
+    display: block; /* Ensure it behaves as a block element */
+    box-sizing: border-box; /* Re-iterate for safety */
+}
+/* In your list.css */
+
+/* ... existing styles for .movie-item, .movie-poster, etc. ... */
+
+/* Movie Info Container */
+.movie-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    min-height: 70px;
+    overflow: hidden;
+    padding-bottom: 5px;
+}
+
+.movie-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.3em;
+    color: #2c3e50;
+    line-height: 1.3;
+    min-height: 2.6em;
+}
+
+/* Hide these specific paragraphs by default */
+.movie-info p:not(.movie-status-display) { /* IMPORTANT: Added :not() selector */
+    margin: 0 0 4px 0;
+    font-size: 0.9em;
+    color: #555;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+/* Ensure movie-status-display is always visible and styled correctly */
+.movie-status-display {
+    margin: 0 0 4px 0; /* Keep consistent margin */
+    font-size: 0.9em;
+    color: #555;
+    opacity: 1 !important; /* Force visibility */
+    max-height: none !important; /* Force height */
+    overflow: visible !important; /* Ensure content is not hidden */
+    transition: none !important; /* No transition needed */
+}
+
+
+/* Movie Overview - Hidden by default, shown on hover */
+.movie-overview {
+    /* ... existing styles ... */
+    position: absolute;
+    top: 0; /* Align to the top of movie-info */
+    left: 0;
+    width: 100%;
+    height: 100%; /* Cover the entire info area including status */
+    background-color: rgba(255, 255, 255, 0.98);
+    padding: 15px;
+    box-sizing: border-box;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    text-align: left;
+    font-size: 0.88em;
+    color: #444;
+    line-height: 1.5;
+    border-radius: 8px;
+    overflow-y: auto;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+}
+
+/* Show overview on movie-item hover */
+.movie-item:hover .movie-overview {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Show other info (genres, type, added_at) on movie-item hover */
+.movie-item:hover .movie-info p:not(.movie-status-display) { /* IMPORTANT: Still exclude status display */
+    opacity: 1;
+    max-height: 100px;
+    margin-bottom: 4px;
+}
+
+
+/* Movie Actions - now only contains the remove button */
+.movie-actions {
+    display: flex;
+    flex-direction: column; /* Still column, but now just one item */
+    gap: 8px;
+    width: 100%;
+    align-items: stretch;
+    margin-top: 10px;
+}
+
+.remove-btn {
+    /* ... existing styles ... */
+    /* No change needed here, it will just fill the width as before */
+}
+
+/* REMOVE these rules as the select is no longer in the card */
+/* .status-select { ... } */
+/* .status-select:focus { ... } */
+
+
+/* Update min-height for movie-item to accommodate less content by default */
+.movie-item {
+    /* ... existing styles ... */
+    min-height: 360px; /* Adjusted down slightly as there's less default content */
 }
