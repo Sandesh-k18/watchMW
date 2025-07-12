@@ -99,7 +99,7 @@
         <button id="uploadListBtn" class="btn btn-secondary">
           Upload List
         </button>
-        <input type="file" id="fileInput" accept=".txt" class="hidden" style="display: none;">
+       <input type="file" id="fileInput" accept=".txt" class="hidden" style="display: none;">
 
         <select id="bulkStatusSelect" class="control-select hidden">
           <option value="">Change Status Of Selected To...</option>
@@ -337,79 +337,81 @@
             getFirestore,
             collection,
             query,
-            // where, // Not explicitly used in the main fetch query
             getDocs,
-            // orderBy, // Removed from query, client-side sorting is used
             deleteDoc,
             doc,
             updateDoc,
-            Timestamp, // Import Timestamp for serverTimestamp() equivalent
+            Timestamp,
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        console.log("list.ejs script loaded.");
+        console.log("list.ejs script started loading!"); // Keep this for verification
 
-        // Your web app's Firebase configuration (from server injection)
-        const firebaseConfig = JSON.parse('<%- firebaseConfig || "{}" %>');
+        // --- Global Variables (Firebase instances and data arrays) ---
+        // These are declared globally because they are initialized once and used by many functions.
         let app;
         let analytics;
         let db;
         let auth;
         let userId = null;
         let isAuthReady = false;
-        let appId = `<%- __app_id || 'default-app-id' %>`;
+        let appId = `<%- __app_id || 'default-app-id' %>`; // Injected from server
+
+        // Declare firebaseConfig as 'let' and initialize it to an empty object globally.
+        // Its value will be populated inside DOMContentLoaded.
+        let firebaseConfig = {};
 
         let allWatchlistMovies = []; // Stores the full list of movies fetched from Firestore
         let displayedMovies = []; // Stores the currently filtered and sorted movies for rendering/download
         let selectedMovieIds = new Set(); // Stores IDs of selected movies for bulk actions
 
-        // --- DOM elements (Declare all here, after global variables) ---
-        const sortSelect = document.getElementById("sortSelect");
-        const filterStatusAndTypeSelect = document.getElementById("filterStatusAndTypeSelect");
-        const downloadListBtn = document.getElementById("downloadListBtn");
-        const uploadListBtn = document.getElementById("uploadListBtn");
-        const fileInput = document.getElementById("fileInput");
+        // Declare message box elements globally
+        let messageBox;
+        let messageTitle;
+        let messageContent;
 
-        const loadingIndicator = document.getElementById("loadingIndicator");
-        const authPrompt = document.getElementById("authPrompt");
-        const watchlistContent = document.getElementById("watchlistContent");
-        const noMoviesMessage = document.getElementById("noMoviesMessage");
-        const messageBox = document.getElementById("messageBox");
-        const messageTitle = document.getElementById("messageTitle");
-        const messageContent = document.getElementById("messageContent");
-        const closeMessageBox = document.getElementById("closeMessageBox");
+        // Declare other DOM elements that are needed globally by functions defined outside DOMContentLoaded
+        let sortSelect;
+        let filterStatusAndTypeSelect;
+        let downloadListBtn;
+        let uploadListBtn;
+        let fileInput;
+        let loadingIndicator;
+        let authPrompt;
+        let watchlistContent;
+        let noMoviesMessage;
+        let watchlistControls;
+        let bulkStatusSelect;
+        let applyBulkStatusButton;
+        let bulkRemoveButton;
+        let addManuallyBtn;
+        let manualAddModal;
+        let manualAddForm;
+        let manualAddMessage;
+        let manualMovieDescription;
+        let manualMovieName;
+        let manualMovieYear;
+        let manualMovieStatus;
+        let manualMovieType;
+        let manualMovieGenre;
 
-        const watchlistControls = document.getElementById("watchlistControls");
-        const bulkStatusSelect = document.getElementById("bulkStatusSelect");
-        const applyBulkStatusButton = document.getElementById("applyBulkStatusButton");
-        const bulkRemoveButton = document.getElementById("bulkRemoveButton");
 
-        // Manual Add Modal DOM elements
-        const addManuallyBtn = document.getElementById("addManuallyBtn");
-        const manualAddModal = document.getElementById("manualAddModal");
-        const manualAddForm = document.getElementById("manualAddForm");
-        const manualAddMessage = document.getElementById("manualAddMessage");
-        const manualMovieDescription = document.getElementById("manualMovieDescription");
-        const manualMovieName = document.getElementById("manualMovieName");
-        const manualMovieYear = document.getElementById("manualMovieYear");
-        const manualMovieStatus = document.getElementById("manualMovieStatus");
-        const manualMovieType = document.getElementById("manualMovieType");
-        const manualMovieGenre = document.getElementById("manualMovieGenre");
+        // --- Function Definitions (Keep these outside DOMContentLoaded for global access) ---
 
         // Function to show a custom message box (with optional confirmation)
         function showMessageBox(title, message, isConfirm = false, onConfirm = null) {
+            console.log("showMessageBox called. Checking messageBox element:", messageBox);
             if (messageBox && messageTitle && messageContent) {
                 messageTitle.textContent = title;
                 messageContent.textContent = message;
                 messageBox.classList.add("show");
 
-                // Clear previous buttons
                 const existingButtons = messageBox.querySelectorAll('.message-box-buttons button');
                 existingButtons.forEach(btn => btn.remove());
 
                 if (isConfirm && onConfirm) {
                     const confirmButton = document.createElement('button');
                     confirmButton.textContent = 'Confirm';
-                    confirmButton.classList.add('btn', 'btn-danger'); // Use appropriate styling
+                    confirmButton.classList.add('btn', 'btn-danger');
                     confirmButton.style.marginRight = '10px';
                     confirmButton.addEventListener('click', () => {
                         onConfirm();
@@ -431,8 +433,8 @@
                     messageBox.appendChild(buttonContainer);
                 }
             } else {
-                console.error("Message box elements not found:", title, message);
-                alert(`${title}\n\n${message}`); // Fallback to alert
+                console.error("Message box elements not found (in showMessageBox):", title, message);
+                alert(`${title}\n\n${message}`); // Fallback alert
             }
         }
 
@@ -446,26 +448,30 @@
         // Function to update visibility of bulk action buttons
         function updateBulkActionVisibility() {
             if (selectedMovieIds.size > 0) {
-                bulkStatusSelect.classList.remove("hidden");
-                applyBulkStatusButton.classList.remove("hidden");
-                bulkRemoveButton.classList.remove("hidden");
+                if (bulkStatusSelect) bulkStatusSelect.classList.remove("hidden");
+                if (applyBulkStatusButton) applyBulkStatusButton.classList.remove("hidden");
+                if (bulkRemoveButton) bulkRemoveButton.classList.remove("hidden");
             } else {
-                bulkStatusSelect.classList.add("hidden");
-                applyBulkStatusButton.classList.add("hidden");
-                bulkRemoveButton.classList.add("hidden");
-                bulkStatusSelect.value = ""; // Reset dropdown
+                if (bulkStatusSelect) bulkStatusSelect.classList.add("hidden");
+                if (applyBulkStatusButton) applyBulkStatusButton.classList.add("hidden");
+                if (bulkRemoveButton) bulkRemoveButton.classList.add("hidden");
+                if (bulkStatusSelect) bulkStatusSelect.value = "";
             }
         }
 
         // Function to render movie cards
         function renderWatchlistMovies(moviesToRender) {
-            watchlistContent.innerHTML = ""; // Clear current display
+            if (!watchlistContent) {
+                console.error("watchlistContent element not found in renderWatchlistMovies.");
+                return;
+            }
+            watchlistContent.innerHTML = "";
             if (moviesToRender.length === 0) {
-                watchlistContent.classList.add("hidden"); // Hide content if empty
+                watchlistContent.classList.add("hidden");
                 return;
             }
 
-            watchlistContent.classList.remove("hidden"); // Show content if movies exist
+            watchlistContent.classList.remove("hidden");
 
             moviesToRender.forEach((movie) => {
                 const movieCard = document.createElement("div");
@@ -515,12 +521,12 @@
                 poster.alt = movie.title;
                 poster.classList.add("poster-image");
                 if (movie.isManual) {
-                    poster.src = "/images/your_logo_filename.png"; // Use your actual default logo path
+                    poster.src = "/images/your_logo_filename.png";
                     poster.classList.add("custom-manual-poster");
                 } else if (movie.poster_path) {
                     poster.src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
                 } else {
-                    poster.src = "/images/your_logo_filename.png"; // Fallback for TMDB movies with no poster
+                    poster.src = "/images/your_logo_filename.png";
                 }
                 poster.onerror = function () {
                     this.onerror = null;
@@ -616,6 +622,10 @@
 
         // Consolidated function to apply both filtering and sorting, then render
         function applySortAndFilter() {
+            if (!sortSelect || !filterStatusAndTypeSelect) {
+                console.error("Sort or Filter select elements not found in applySortAndFilter.");
+                return;
+            }
             const currentSort = sortSelect.value;
             const currentFilter = filterStatusAndTypeSelect.value;
 
@@ -640,26 +650,33 @@
                 });
             }
 
-            displayedMovies = sortMovies(moviesToProcess, currentSort); // Update the global displayedMovies
+            displayedMovies = sortMovies(moviesToProcess, currentSort);
             renderWatchlistMovies(displayedMovies);
 
-            // Show/hide no movies message based on filtered results
             if (displayedMovies.length === 0 && allWatchlistMovies.length > 0) {
-                noMoviesMessage.classList.remove("hidden");
-                noMoviesMessage.querySelector("p").textContent = "No movies match your current filter and sort criteria.";
-                watchlistContent.classList.add("hidden"); // Hide movie grid
+                if (noMoviesMessage) {
+                    noMoviesMessage.classList.remove("hidden");
+                    noMoviesMessage.querySelector("p").textContent = "No movies match your current filter and sort criteria.";
+                }
+                if (watchlistContent) watchlistContent.classList.add("hidden");
             } else if (allWatchlistMovies.length === 0) {
-                noMoviesMessage.classList.remove("hidden");
-                noMoviesMessage.querySelector("p").textContent = "Your watchlist is empty! Start by adding some movies!";
-                watchlistContent.classList.add("hidden"); // Hide movie grid
+                if (noMoviesMessage) {
+                    noMoviesMessage.classList.remove("hidden");
+                    noMoviesMessage.querySelector("p").textContent = "Your watchlist is empty! Start by adding some movies!";
+                }
+                if (watchlistContent) watchlistContent.classList.add("hidden");
             } else {
-                noMoviesMessage.classList.add("hidden");
-                watchlistContent.classList.remove("hidden"); // Show movie grid
+                if (noMoviesMessage) noMoviesMessage.classList.add("hidden");
+                if (watchlistContent) watchlistContent.classList.remove("hidden");
             }
         }
 
-        // NEW: Function to generate plain text list from displayed movies
+        // Function to generate plain text list from displayed movies
         function generatePlainTextList(movies) {
+            if (!filterStatusAndTypeSelect || !sortSelect) {
+                console.error("Filter or Sort select elements not found in generatePlainTextList.");
+                return "Error: Could not generate list due to missing UI elements.";
+            }
             if (movies.length === 0) {
                 return "Your watchlist is currently empty or no movies match the applied filters and sort criteria.\n";
             }
@@ -683,59 +700,69 @@
                 text += `   Status: ${status}\n`;
                 text += `   Type: ${type}\n`;
                 text += `   Genre(s): ${genres}\n`;
-                text += `   Overview: ${overview.substring(0, 150)}${overview.length > 150 ? '...' : ''}\n`; // Truncate long overviews
+                text += `   Overview: ${overview.substring(0, 150)}${overview.length > 150 ? '...' : ''}\n`;
                 text += `----------------------------------------\n`;
             });
 
             return text;
         }
 
-        // NEW: Function to trigger text file download
+        // Function to trigger text file download
         function downloadTextFile(text, filename) {
             const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = filename;
-            document.body.appendChild(a); // Append to body is necessary for Firefox
+            document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a); // Clean up
-            URL.revokeObjectURL(url); // Free up memory
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
-        // NEW: Function to parse plain text list into movie objects
+        // Function to parse plain text list into movie objects
         function parsePlainTextList(text) {
+            console.log("parsePlainTextList: Raw text content:", text);
             const movies = [];
-            const movieBlocks = text.split('----------------------------------------\n').slice(1);
+            // Split by the delimiter, and also handle potential leading/trailing newlines around the delimiter
+            const movieBlocks = text.split('----------------------------------------\n').map(block => block.trim()).filter(block => block !== '');
+            console.log("parsePlainTextList: Movie blocks after split and trim:", movieBlocks);
 
             movieBlocks.forEach(block => {
-                if (block.trim() === '') return;
+                if (block.trim() === '') {
+                    console.log("parsePlainTextList: Skipping empty block.");
+                    return;
+                }
 
+                // Split lines and trim each, then filter out empty lines
                 const lines = block.split('\n').map(line => line.trim()).filter(line => line !== '');
+                console.log("parsePlainTextList: Lines in current block:", lines);
                 const movie = {};
 
                 lines.forEach(line => {
-                    if (line.startsWith('Title:')) {
-                        movie.title = line.substring('Title:'.length).trim();
-                    } else if (line.startsWith('Year:')) {
-                        const yearStr = line.substring('Year:'.length).trim();
+                    // Use .includes() and then find the index to get the value after the colon
+                    if (line.includes('Title:')) {
+                        movie.title = line.substring(line.indexOf('Title:') + 'Title:'.length).trim();
+                    } else if (line.includes('Year:')) {
+                        const yearStr = line.substring(line.indexOf('Year:') + 'Year:'.length).trim();
                         movie.year = yearStr !== 'N/A' ? parseInt(yearStr, 10) : null;
-                    } else if (line.startsWith('Status:')) {
-                        movie.status = line.substring('Status:'.length).trim();
-                    } else if (line.startsWith('Type:')) {
-                        movie.type = line.substring('Type:'.length).trim();
+                    } else if (line.includes('Status:')) {
+                        movie.status = line.substring(line.indexOf('Status:') + 'Status:'.length).trim();
+                    } else if (line.includes('Type:')) {
+                        movie.type = line.substring(line.indexOf('Type:') + 'Type:'.length).trim();
                         if (movie.type === "Manual Entry") {
                             movie.isManual = true;
                             movie.type = movie.type || 'movie';
                         }
-                    } else if (line.startsWith('Genre(s):')) {
-                        const genresStr = line.substring('Genre(s):'.length).trim();
+                    } else if (line.includes('Genre(s):')) {
+                        const genresStr = line.substring(line.indexOf('Genre(s):') + 'Genre(s):'.length).trim();
                         movie.genres = genresStr !== 'N/A' ? genresStr.split(',').map(g => g.trim()) : [];
-                    } else if (line.startsWith('Overview:')) {
-                        movie.overview = line.substring('Overview:'.length).trim();
+                    } else if (line.includes('Overview:')) {
+                        movie.overview = line.substring(line.indexOf('Overview:') + 'Overview:'.length).trim();
                     }
                 });
 
+                // Set default values for properties that might be missing in the parsed text
                 movie.status = movie.status || "Plan to Watch";
                 movie.type = movie.type || "movie";
                 movie.genres = movie.genres || [];
@@ -748,20 +775,28 @@
                     movie.release_date = `${movie.year}-01-01`;
                 }
 
-                if (movie.title) {
+                if (movie.title) { // Only add if a title was found
                     movies.push(movie);
+                    console.log("parsePlainTextList: Successfully parsed movie:", movie);
+                } else {
+                    console.log("parsePlainTextList: Skipping block due to missing title:", block);
                 }
             });
             return movies;
         }
 
-        // NEW: Function to upload movies to watchlist, checking for duplicates
+        // Function to upload movies to watchlist, checking for duplicates
         async function uploadMoviesToWatchlist(moviesToUpload) {
             if (!userId) {
                 showMessageBox("Authentication Required", "Please log in to upload movies to your watchlist.");
                 return;
             }
 
+            if (!loadingIndicator) {
+                console.error("loadingIndicator element not found in uploadMoviesToWatchlist.");
+                showMessageBox("Error", "Internal error: Loading indicator not found.");
+                return;
+            }
             loadingIndicator.classList.remove("hidden");
             let addedCount = 0;
             let skippedCount = 0;
@@ -792,6 +827,7 @@
                         ...movieData,
                         added_at: Timestamp.now(),
                     };
+                    console.log('Client-side: Sending movie to backend:', movieToAdd); // Keep this log
 
                     const response = await fetch("/movies/add-manual", {
                         method: "POST",
@@ -827,6 +863,11 @@
         // Function to fetch and display watchlist
         async function fetchAndDisplayWatchlist() {
             console.log("fetchAndDisplayWatchlist called. isAuthReady:", isAuthReady, "db:", !!db, "userId:", userId);
+            if (!loadingIndicator || !authPrompt || !watchlistContent || !noMoviesMessage || !watchlistControls) {
+                console.error("One or more essential DOM elements not found in fetchAndDisplayWatchlist.");
+                return;
+            }
+
             loadingIndicator.classList.remove("hidden");
             authPrompt.classList.add("hidden");
             watchlistContent.classList.add("hidden");
@@ -836,7 +877,6 @@
             selectedMovieIds.clear();
             updateBulkActionVisibility();
 
-            // Wait until Firebase Auth and Firestore are initialized and ready
             await new Promise((resolve) => {
                 const checkReadyInterval = setInterval(() => {
                     if (isAuthReady && db && auth) {
@@ -866,8 +906,7 @@
                     db,
                     `artifacts/${appId}/users/${userId}/watchlist`
                 );
-                // Removed orderBy from here, as sorting is done client-side in applySortAndFilter
-                const q = query(watchlistCollectionRef);
+                const q = query(watchlistCollectionRef); // No orderBy here, client-side sorting is used
 
                 const querySnapshot = await getDocs(q);
                 allWatchlistMovies = [];
@@ -875,7 +914,7 @@
                     allWatchlistMovies.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                applySortAndFilter(); // This will now handle rendering and noMoviesMessage logic
+                applySortAndFilter();
                 watchlistControls.classList.remove("hidden");
 
             } catch (error) {
@@ -891,10 +930,63 @@
 
         // --- CONSOLIDATED DOMContentLoaded BLOCK ---
         document.addEventListener("DOMContentLoaded", async () => {
+            console.log("DOMContentLoaded fired.");
+
+            // --- DOM elements (Assign to globally declared variables here, at the very start) ---
+            sortSelect = document.getElementById("sortSelect");
+            filterStatusAndTypeSelect = document.getElementById("filterStatusAndTypeSelect");
+            downloadListBtn = document.getElementById("downloadListBtn");
+            uploadListBtn = document.getElementById("uploadListBtn");
+            fileInput = document.getElementById("fileInput");
+
+            loadingIndicator = document.getElementById("loadingIndicator");
+            authPrompt = document.getElementById("authPrompt");
+            watchlistContent = document.getElementById("watchlistContent");
+            noMoviesMessage = document.getElementById("noMoviesMessage");
+            messageBox = document.getElementById("messageBox");
+            messageTitle = document.getElementById("messageTitle");
+            messageContent = document.getElementById("messageContent");
+            const closeMessageBox = document.getElementById("closeMessageBox");
+
+            watchlistControls = document.getElementById("watchlistControls");
+            bulkStatusSelect = document.getElementById("bulkStatusSelect");
+            applyBulkStatusButton = document.getElementById("applyBulkStatusButton");
+            bulkRemoveButton = document.getElementById("bulkRemoveButton");
+
+            addManuallyBtn = document.getElementById("addManuallyBtn");
+            manualAddModal = document.getElementById("manualAddModal");
+            manualAddForm = document.getElementById("manualAddForm");
+            manualAddMessage = document.getElementById("manualAddMessage");
+            manualMovieDescription = document.getElementById("manualMovieDescription");
+            manualMovieName = document.getElementById("manualMovieName");
+            manualMovieYear = document.getElementById("manualMovieYear");
+            manualMovieStatus = document.getElementById("manualMovieStatus");
+            manualMovieType = document.getElementById("manualMovieType");
+            manualMovieGenre = document.getElementById("manualMovieGenre");
+
+            // Add logs to confirm elements are found
+            console.log("messageBox element:", messageBox);
+            console.log("messageTitle element:", messageTitle);
+            console.log("messageContent element:", messageContent);
+            console.log("bulkRemoveButton element:", bulkRemoveButton);
+
+
             // --- Firebase Initialization ---
             try {
                 const initialAuthToken = `<%- __initial_auth_token || 'null' %>`;
                 appId = `<%- __app_id || 'default-app-id' %>`;
+
+                const rawFirebaseConfig = '<%- firebaseConfig || "{}" %>';
+                console.log("Raw firebaseConfig from EJS:", rawFirebaseConfig);
+                try {
+                    firebaseConfig = JSON.parse(rawFirebaseConfig);
+                    console.log("Parsed firebaseConfig:", firebaseConfig);
+                } catch (parseError) {
+                    console.error("Error parsing FIREBASE_CONFIG from EJS:", parseError);
+                    showMessageBox("Firebase Error", `Failed to parse Firebase configuration: ${parseError.message}. Check your server setup and .env file.`);
+                    if (loadingIndicator) loadingIndicator.classList.add("hidden");
+                    return;
+                }
 
                 if (
                     Object.keys(firebaseConfig).length === 0 ||
@@ -903,7 +995,7 @@
                 ) {
                     console.error("Firebase config is empty or missing critical properties (apiKey, authDomain).");
                     showMessageBox("Firebase Error", "Firebase configuration is missing or incomplete. Please check your server setup and .env file.");
-                    loadingIndicator.classList.add("hidden");
+                    if (loadingIndicator) loadingIndicator.classList.add("hidden");
                     return;
                 }
 
@@ -921,35 +1013,36 @@
                 auth = getAuth(app);
 
                 onAuthStateChanged(auth, async (user) => {
+                    console.log("onAuthStateChanged fired. User:", user ? user.uid : "null");
                     if (user) {
                         userId = user.uid;
                         console.log("Firebase: User signed in:", user.email || "Anonymous", user.uid);
-                        authPrompt.classList.add('hidden');
-                        watchlistControls.classList.remove('hidden');
+                        if (authPrompt) authPrompt.classList.add('hidden');
+                        if (watchlistControls) watchlistControls.classList.remove('hidden');
                         if (addManuallyBtn) {
                             addManuallyBtn.disabled = false;
                         }
                     } else {
                         userId = null;
                         console.log("Firebase: User signed out. Showing auth prompt.");
-                        authPrompt.classList.remove('hidden');
-                        watchlistControls.classList.add('hidden');
-                        watchlistContent.classList.add('hidden');
-                        noMoviesMessage.classList.add('hidden');
-                        loadingIndicator.classList.add('hidden');
+                        if (authPrompt) authPrompt.classList.remove('hidden');
+                        if (watchlistControls) watchlistControls.classList.add('hidden');
+                        if (watchlistContent) watchlistContent.classList.add('hidden');
+                        if (noMoviesMessage) noMoviesMessage.classList.add('hidden');
+                        if (loadingIndicator) loadingIndicator.classList.add('hidden');
                         if (addManuallyBtn) {
                             addManuallyBtn.disabled = true;
                         }
                     }
                     isAuthReady = true;
                     console.log("isAuthReady set to true. Calling fetchAndDisplayWatchlist.");
-                    fetchAndDisplayWatchlist(); // This is called after auth state is determined
+                    fetchAndDisplayWatchlist();
                 });
 
             } catch (error) {
                 console.error("Firebase initialization failed:", error);
                 showMessageBox("Firebase Error", `Failed to initialize Firebase: ${error.message}. Check your console.`);
-                loadingIndicator.classList.add("hidden");
+                if (loadingIndicator) loadingIndicator.classList.add("hidden");
             }
 
             // --- UI Event Listeners (All consolidated here) ---
@@ -965,9 +1058,9 @@
             // Manual Add Button
             if (addManuallyBtn) {
                 addManuallyBtn.addEventListener("click", () => {
-                    manualAddModal.style.display = "block";
-                    manualAddMessage.textContent = "";
-                    manualAddForm.reset();
+                    if (manualAddModal) manualAddModal.style.display = "block";
+                    if (manualAddMessage) manualAddMessage.textContent = "";
+                    if (manualAddForm) manualAddForm.reset();
                 });
                 console.log("addManuallyBtn listener attached.");
             } else {
@@ -980,7 +1073,7 @@
                 : null;
             if (manualAddModalCloseButton) {
                 manualAddModalCloseButton.addEventListener("click", () => {
-                    manualAddModal.style.display = "none";
+                    if (manualAddModal) manualAddModal.style.display = "none";
                 });
                 console.log("manualAddModal close button listener attached.");
             } else {
@@ -1009,21 +1102,27 @@
                     const genres = genreString ? genreString.split(",").map((g) => g.trim()) : [];
 
                     if (!title) {
-                        manualAddMessage.textContent = "Movie title is required.";
-                        manualAddMessage.style.color = "red";
+                        if (manualAddMessage) {
+                            manualAddMessage.textContent = "Movie title is required.";
+                            manualAddMessage.style.color = "red";
+                        }
                         return;
                     }
 
                     const user = auth.currentUser;
                     if (!user) {
-                        manualAddMessage.textContent = "You must be logged in to add movies.";
-                        manualAddMessage.style.color = "red";
+                        if (manualAddMessage) {
+                            manualAddMessage.textContent = "You must be logged in to add movies.";
+                            manualAddMessage.style.color = "red";
+                        }
                         return;
                     }
                     const idToken = await user.getIdToken();
 
-                    manualAddMessage.textContent = "Adding movie...";
-                    manualAddMessage.style.color = "blue";
+                    if (manualAddMessage) {
+                        manualAddMessage.textContent = "Adding movie...";
+                        manualAddMessage.style.color = "blue";
+                    }
 
                     try {
                         const response = await fetch("/movies/add-manual", {
@@ -1045,20 +1144,26 @@
                         const result = await response.json();
 
                         if (response.ok) {
-                            manualAddMessage.textContent = result.message || "Movie added successfully!";
-                            manualAddMessage.style.color = "green";
+                            if (manualAddMessage) {
+                                manualAddMessage.textContent = result.message || "Movie added successfully!";
+                                manualAddMessage.style.color = "green";
+                            }
                             setTimeout(async () => {
-                                manualAddModal.style.display = "none";
+                                if (manualAddModal) manualAddModal.style.display = "none";
                                 await fetchAndDisplayWatchlist();
                             }, 500);
                         } else {
-                            manualAddMessage.textContent = result.message || "Error adding movie.";
-                            manualAddMessage.style.color = "red";
+                            if (manualAddMessage) {
+                                manualAddMessage.textContent = result.message || "Error adding movie.";
+                                manualAddMessage.style.color = "red";
+                            }
                         }
                     } catch (error) {
                         console.error("Error adding movie manually:", error);
-                        manualAddMessage.textContent = "Network error or server unavailable.";
-                        manualAddMessage.style.color = "red";
+                        if (manualAddMessage) {
+                            manualAddMessage.textContent = "Network error or server unavailable.";
+                            manualAddMessage.style.color = "red";
+                        }
                     }
                 });
                 console.log("manualAddForm submit listener attached.");
@@ -1067,27 +1172,24 @@
             }
 
             // Sort Dropdown
-            const localSortSelect = document.getElementById("sortSelect");
-            if (localSortSelect) {
-                localSortSelect.addEventListener("change", applySortAndFilter);
+            if (sortSelect) {
+                sortSelect.addEventListener("change", applySortAndFilter);
                 console.log("sortSelect listener attached.");
             } else {
                 console.error("ERROR: sortSelect element not found. Check HTML ID.");
             }
 
             // Filter Status and Type Dropdown
-            const localFilterStatusAndTypeSelect = document.getElementById("filterStatusAndTypeSelect");
-            if (localFilterStatusAndTypeSelect) {
-                localFilterStatusAndTypeSelect.addEventListener("change", applySortAndFilter);
+            if (filterStatusAndTypeSelect) {
+                filterStatusAndTypeSelect.addEventListener("change", applySortAndFilter);
                 console.log("filterStatusAndTypeSelect listener attached.");
             } else {
                 console.error("ERROR: filterStatusAndTypeSelect element not found. Check HTML ID.");
             }
 
             // Download List Button Event Listener
-            const localDownloadListBtn = document.getElementById("downloadListBtn");
-            if (localDownloadListBtn) {
-                localDownloadListBtn.addEventListener("click", () => {
+            if (downloadListBtn) {
+                downloadListBtn.addEventListener("click", () => {
                     if (displayedMovies.length === 0) {
                         showMessageBox("No Movies to Download", "Your current filtered list is empty. Add some movies or adjust your filters.");
                         return;
@@ -1104,30 +1206,34 @@
             }
 
             // Upload List Button Event Listener
-            const localUploadListBtn = document.getElementById("uploadListBtn");
-            const localFileInput = document.getElementById("fileInput");
-            if (localUploadListBtn && localFileInput) {
-                localUploadListBtn.addEventListener("click", () => {
-                    localFileInput.click();
+            if (uploadListBtn && fileInput) {
+                uploadListBtn.addEventListener("click", () => {
+                    console.log("Upload button clicked. Triggering file input click.");
+                    fileInput.click();
                 });
-                localFileInput.addEventListener("change", (event) => {
+                fileInput.addEventListener("change", (event) => {
+                    console.log("File input change event detected.");
                     const file = event.target.files[0];
                     if (file) {
                         const reader = new FileReader();
                         reader.onload = async (e) => {
+                            console.log("FileReader loaded content.");
                             const textContent = e.target.result;
                             const moviesToUpload = parsePlainTextList(textContent);
+                            console.log("Parsed movies from file:", moviesToUpload);
                             if (moviesToUpload.length > 0) {
                                 await uploadMoviesToWatchlist(moviesToUpload);
                             } else {
                                 showMessageBox("No Movies Found", "The uploaded file does not contain any recognizable movie entries.");
                             }
-                            localFileInput.value = '';
+                            fileInput.value = '';
                         };
                         reader.onerror = () => {
                             showMessageBox("File Read Error", "Could not read the file.");
                         };
                         reader.readAsText(file);
+                    } else {
+                        console.log("No file selected.");
                     }
                 });
                 console.log("uploadListBtn and fileInput listeners attached.");
@@ -1136,24 +1242,29 @@
             }
 
             // Bulk Action Buttons
-            const localBulkRemoveButton = document.getElementById("bulkRemoveButton");
-            if (localBulkRemoveButton) {
-                localBulkRemoveButton.addEventListener("click", async () => {
+            if (bulkRemoveButton) {
+                bulkRemoveButton.addEventListener("click", async () => {
+                    console.log("Bulk Remove button clicked.");
                     if (selectedMovieIds.size === 0) {
                         showMessageBox("No Selection", "Please select movies to remove.");
                         return;
                     }
+                    
                     showMessageBox(
                         "Confirm Removal",
                         "Are you sure you want to remove the selected movies from your watchlist?",
-                        true,
-                        async () => {
-                            loadingIndicator.classList.remove("hidden");
+                        true, // isConfirm = true
+                        async () => { // onConfirm callback
+                            console.log("Confirmation received for bulk removal. Starting removal process.");
+                            if (loadingIndicator) loadingIndicator.classList.remove("hidden");
                             let removedCount = 0;
                             const currentAppId = appId;
                             const currentUserId = userId;
+                            console.log("Removing for userId:", currentUserId, "appId:", currentAppId);
+
                             try {
                                 for (const movieIdToRemove of selectedMovieIds) {
+                                    console.log("Attempting to remove movie ID:", movieIdToRemove);
                                     const movieRef = doc(
                                         db,
                                         `artifacts/${currentAppId}/users/${currentUserId}/watchlist`,
@@ -1161,15 +1272,17 @@
                                     );
                                     await deleteDoc(movieRef);
                                     removedCount++;
+                                    console.log("Successfully removed movie ID:", movieIdToRemove);
                                 }
                                 showMessageBox("Success", `${removedCount} movie(s) removed from your watchlist.`);
                                 selectedMovieIds.clear();
+                                updateBulkActionVisibility();
                                 await fetchAndDisplayWatchlist();
                             } catch (error) {
                                 console.error("Error performing bulk remove:", error);
                                 showMessageBox("Error", `Failed to remove movies: ${error.message}`);
                             } finally {
-                                loadingIndicator.classList.add("hidden");
+                                if (loadingIndicator) loadingIndicator.classList.add("hidden");
                             }
                         }
                     );
@@ -1179,9 +1292,8 @@
                 console.error("ERROR: bulkRemoveButton element not found. Check HTML ID.");
             }
 
-            const localApplyBulkStatusButton = document.getElementById("applyBulkStatusButton");
-            if (localApplyBulkStatusButton) {
-                localApplyBulkStatusButton.addEventListener("click", async () => {
+            if (applyBulkStatusButton) {
+                applyBulkStatusButton.addEventListener("click", async () => {
                     const newStatus = bulkStatusSelect.value;
                     if (selectedMovieIds.size === 0) {
                         showMessageBox("No Selection", "Please select movies to update.");
@@ -1192,7 +1304,7 @@
                         return;
                     }
 
-                    loadingIndicator.classList.remove("hidden");
+                    if (loadingIndicator) loadingIndicator.classList.remove("hidden");
                     let updatedCount = 0;
                     const currentAppId = appId;
                     const currentUserId = userId;
@@ -1212,20 +1324,21 @@
                         }
                         showMessageBox("Success", `${updatedCount} movie(s) status updated to "${newStatus}".`);
                         selectedMovieIds.clear();
-                        bulkStatusSelect.value = "";
+                        if (bulkStatusSelect) bulkStatusSelect.value = "";
+                        updateBulkActionVisibility();
                         await fetchAndDisplayWatchlist();
                     } catch (error) {
                         console.error("Error performing bulk status update:", error);
                         showMessageBox("Error", `Failed to update movie status: ${error.message}`);
                     } finally {
-                        loadingIndicator.classList.add("hidden");
+                        if (loadingIndicator) loadingIndicator.classList.add("hidden");
                     }
                 });
                 console.log("applyBulkStatusButton listener attached.");
             } else {
                 console.error("ERROR: applyBulkStatusButton element not found. Check HTML ID.");
             }
-        }); // End of CONSOLIDATED DOMContentLoaded
+        });
     </script>
   </body>
 </html>

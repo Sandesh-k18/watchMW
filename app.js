@@ -200,7 +200,7 @@ app.post("/search-movies", async (req, res) => {
             overview: movie.overview,
             poster_path: movie.poster_path
                 ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}`
-                : "/images/your_logo_filename.png",
+                : "/images/default.png",
             release_date: movie.release_date,
             vote_average: movie.vote_average,
             genre_ids: movie.genre_ids,
@@ -289,7 +289,7 @@ app.get("/api/movie-details/:id", async (req, res) => {
             overview: movieData.overview,
             poster_path: movieData.poster_path
                 ? `${TMDB_IMAGE_BASE_URL}${movieData.poster_path}`
-                : "/images/your_logo_filename.png",
+                : "/images/default",
             backdrop_path: movieData.backdrop_path
                 ? `${TMDB_IMAGE_BASE_URL}${movieData.backdrop_path}`
                 : null,
@@ -338,7 +338,9 @@ app.get("/api/user/watchlist", async (req, res) => {
 // API Endpoint to Add Movie Manually (UPDATED to store user-specific data)
 app.post('/movies/add-manual', async (req, res) => {
     const userId = req.user ? req.user.uid : null; // Get userId from authenticated user
-
+    console.log('Server-side: Received POST to /movies/add-manual'); // <--- ADD THIS LINE
+    console.log('Server-side: req.user:', req.user ? req.user.uid : 'Not authenticated'); // <--- ADD THIS LINE
+    console.log('Server-side: req.body:', req.body); // <--- ADD THIS LINE (This is crucial!)
     if (!userId) {
         return res.status(401).json({ message: 'Authentication required to add movies.' });
     }
