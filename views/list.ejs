@@ -521,16 +521,16 @@
                 poster.alt = movie.title;
                 poster.classList.add("poster-image");
                 if (movie.isManual) {
-                    poster.src = "/images/your_logo_filename.png";
+                    poster.src = "/images/default.png";
                     poster.classList.add("custom-manual-poster");
                 } else if (movie.poster_path) {
                     poster.src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
                 } else {
-                    poster.src = "/images/your_logo_filename.png";
+                    poster.src = "/images/default.png";
                 }
                 poster.onerror = function () {
                     this.onerror = null;
-                    this.src = "/images/your_logo_filename.png";
+                    this.src = "/images/default.png";
                 };
 
                 const movieInfoSummary = document.createElement("div");
