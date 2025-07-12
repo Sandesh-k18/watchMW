@@ -123,13 +123,17 @@
       </div>
     </div>
 
-    <div id="messageBox" class="message-box hidden">
-      <div class="header">
-        <h3 id="messageTitle"></h3>
-        <button id="closeMessageBox" class="close-button">&times;</button>
-      </div>
-      <p id="messageContent"></p>
-    </div>
+<!-- Custom Message Box -->
+        <div id="messageBox" class="message-box-overlay">
+            <div class="message-box-content">
+                <span id="closeMessageBox" class="close-button">&times;</span>
+                <h3 id="messageTitle"></h3>
+                <p id="messageContent"></p>
+                <div class="message-box-buttons">
+                    <!-- Buttons are dynamically inserted here by showMessageBox -->
+                </div>
+            </div>
+        </div>
 
     <div
       id="manualAddModal"

@@ -802,3 +802,123 @@ h1 {
     background-color: #007bff;
     color: white;
 }
+/* Message Box Overlay */
+.message-box-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's on top of everything */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.message-box-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Message Box Content */
+.message-box-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px; /* Rounded corners */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+    transform: translateY(-20px); /* Slight animation */
+    transition: transform 0.3s ease;
+    font-family: 'Inter', sans-serif; /* Consistent font */
+}
+
+.message-box-overlay.show .message-box-content {
+    transform: translateY(0);
+}
+
+.message-box-content h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+.message-box-content p {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.message-box-content .close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.8em;
+    color: #aaa;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+}
+
+.message-box-content .close-button:hover {
+    color: #777;
+}
+
+/* Buttons within the message box */
+.message-box-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Space between buttons */
+    margin-top: 20px;
+}
+
+.message-box-buttons .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.message-box-buttons .btn-primary {
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #007bff;
+}
+
+.message-box-buttons .btn-primary:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.message-box-buttons .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: 1px solid #6c757d;
+}
+
+.message-box-buttons .btn-secondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+}
+
+.message-box-buttons .btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: 1px solid #dc3545;
+}
+
+.message-box-buttons .btn-danger:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
