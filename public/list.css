@@ -922,3 +922,60 @@ h1 {
     background-color: #c82333;
     transform: translateY(-2px);
 }
+/* Styles for the new search group */
+.search-group {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+    gap: 10px; /* Space between elements */
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.search-group label {
+    font-weight: bold;
+    color: #555;
+    white-space: nowrap; /* Prevent label from wrapping */
+}
+
+.search-group input[type="text"],
+.search-group input[type="number"] {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-family: 'Inter', sans-serif;
+    flex-grow: 1; /* Allow inputs to grow */
+    min-width: 120px; /* Minimum width for inputs */
+}
+
+.search-group input[type="text"]::placeholder,
+.search-group input[type="number"]::placeholder {
+    color: #aaa;
+}
+
+.search-group .btn {
+    padding: 8px 15px;
+    font-size: 0.95em;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+/* Responsive adjustments for search group */
+@media (max-width: 768px) {
+    .search-group {
+        flex-direction: column;
+        align-items: stretch; /* Stretch items to full width */
+    }
+    .search-group label {
+        margin-bottom: 5px;
+    }
+    .search-group input {
+        width: 100%; /* Full width inputs */
+    }
+    .search-group .btn {
+        width: 100%; /* Full width buttons */
+    }
+}

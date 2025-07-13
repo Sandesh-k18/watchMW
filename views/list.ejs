@@ -72,7 +72,17 @@
             <option value="isManual:true">Manually Added Only</option>
           </select>
         </div>
+ <!-- NEW: Search Input Group (Add this block) -->
+            <div class="search-group">
+                <label for="searchTitleInput">Search Title:</label>
+                <input type="text" id="searchTitleInput" placeholder="e.g., Inception">
 
+                <label for="searchYearInput">Year (Optional):</label>
+                <input type="number" id="searchYearInput" placeholder="e.g., 2010">
+
+                <button id="applySearchBtn" class="btn btn-secondary">Apply Search</button>
+                <button id="clearSearchBtn" class="btn btn-secondary">Clear Search</button>
+            </div>
         <button id="addBySearchBtn" class="btn btn-primary">
           <a
             href="/search"
@@ -399,6 +409,11 @@
         let manualMovieGenre;
 
 
+            let searchTitleInput;
+    let searchYearInput;
+    let applySearchBtn;
+    let clearSearchBtn;
+
         // --- Function Definitions (Keep these outside DOMContentLoaded for global access) ---
 
         // Function to show a custom message box (with optional confirmation)
@@ -624,57 +639,74 @@
             });
         }
 
-        // Consolidated function to apply both filtering and sorting, then render
-        function applySortAndFilter() {
-            if (!sortSelect || !filterStatusAndTypeSelect) {
-                console.error("Sort or Filter select elements not found in applySortAndFilter.");
-                return;
-            }
-            const currentSort = sortSelect.value;
-            const currentFilter = filterStatusAndTypeSelect.value;
+// Consolidated function to apply both filtering, searching, and sorting, then render
+    function applySortAndFilter() {
+        if (!sortSelect || !filterStatusAndTypeSelect || !searchTitleInput || !searchYearInput) {
+            console.error("One or more filter/sort/search elements not found in applySortAndFilter.");
+            return;
+        }
+        const currentSort = sortSelect.value;
+        const currentFilter = filterStatusAndTypeSelect.value;
+        const searchTerm = searchTitleInput.value.toLowerCase().trim(); // Get search term
+        const searchYear = searchYearInput.value.trim(); // Get search year
 
-            let moviesToProcess = [...allWatchlistMovies];
+        let moviesToProcess = [...allWatchlistMovies];
 
-            if (currentFilter !== "all") {
-                const [filterType, filterValue] = currentFilter.split(":");
+        // --- NEW: Apply Search Filtering ---
+        if (searchTerm) {
+            moviesToProcess = moviesToProcess.filter(movie => {
+                const movieTitle = (movie.title || '').toLowerCase();
+                const movieYear = movie.year ? String(movie.year) : (movie.release_date ? String(new Date(movie.release_date).getFullYear()) : '');
 
-                moviesToProcess = moviesToProcess.filter(movie => {
-                    if (filterType === "status") {
-                        return (movie.status || "Plan to Watch") === filterValue;
-                    } else if (filterType === "type") {
-                        if (filterValue === "movie") {
-                            return (movie.media_type === 'movie' || (!movie.isManual && !movie.media_type) || (movie.isManual && movie.type === 'movie'));
-                        } else if (filterValue === "series") {
-                            return (movie.media_type === 'tv' || (movie.isManual && movie.type === 'series'));
-                        }
-                    } else if (filterType === "isManual" && filterValue === "true") {
-                        return movie.isManual === true;
-                    }
-                    return false;
-                });
-            }
+                const titleMatches = movieTitle.includes(searchTerm);
+                const yearMatches = searchYear ? (movieYear === searchYear) : true; // If no searchYear, always true
 
-            displayedMovies = sortMovies(moviesToProcess, currentSort);
-            renderWatchlistMovies(displayedMovies);
-
-            if (displayedMovies.length === 0 && allWatchlistMovies.length > 0) {
-                if (noMoviesMessage) {
-                    noMoviesMessage.classList.remove("hidden");
-                    noMoviesMessage.querySelector("p").textContent = "No movies match your current filter and sort criteria.";
-                }
-                if (watchlistContent) watchlistContent.classList.add("hidden");
-            } else if (allWatchlistMovies.length === 0) {
-                if (noMoviesMessage) {
-                    noMoviesMessage.classList.remove("hidden");
-                    noMoviesMessage.querySelector("p").textContent = "Your watchlist is empty! Start by adding some movies!";
-                }
-                if (watchlistContent) watchlistContent.classList.add("hidden");
-            } else {
-                if (noMoviesMessage) noMoviesMessage.classList.add("hidden");
-                if (watchlistContent) watchlistContent.classList.remove("hidden");
-            }
+                return titleMatches && yearMatches;
+            });
         }
 
+        // --- Existing: Apply Status/Type Filtering ---
+        if (currentFilter !== "all") {
+            const [filterType, filterValue] = currentFilter.split(":");
+
+            moviesToProcess = moviesToProcess.filter(movie => {
+                if (filterType === "status") {
+                    return (movie.status || "Plan to Watch") === filterValue;
+                } else if (filterType === "type") {
+                    if (filterValue === "movie") {
+                        return (movie.media_type === 'movie' || (!movie.isManual && !movie.media_type) || (movie.isManual && movie.type === 'movie'));
+                    } else if (filterValue === "series") {
+                        return (movie.media_type === 'tv' || (movie.isManual && movie.type === 'series'));
+                    }
+                } else if (filterType === "isManual" && filterValue === "true") {
+                    return movie.isManual === true;
+                }
+                return false;
+            });
+        }
+
+        // --- Existing: Apply Sorting ---
+        displayedMovies = sortMovies(moviesToProcess, currentSort);
+        renderWatchlistMovies(displayedMovies);
+
+        // Update no movies message based on current filters/search
+        if (displayedMovies.length === 0 && allWatchlistMovies.length > 0) {
+            if (noMoviesMessage) {
+                noMoviesMessage.classList.remove("hidden");
+                noMoviesMessage.querySelector("p").textContent = "No movies match your current search, filter, and sort criteria.";
+            }
+            if (watchlistContent) watchlistContent.classList.add("hidden");
+        } else if (allWatchlistMovies.length === 0) {
+            if (noMoviesMessage) {
+                noMoviesMessage.classList.remove("hidden");
+                noMoviesMessage.querySelector("p").textContent = "Your watchlist is empty! Start by adding some movies!";
+            }
+            if (watchlistContent) watchlistContent.classList.add("hidden");
+        } else {
+            if (noMoviesMessage) noMoviesMessage.classList.add("hidden");
+            if (watchlistContent) watchlistContent.classList.remove("hidden");
+        }
+    }
         // Function to generate plain text list from displayed movies
         function generatePlainTextList(movies) {
             if (!filterStatusAndTypeSelect || !sortSelect) {
@@ -1058,7 +1090,34 @@
             } else {
                 console.error("ERROR: closeMessageBox element not found. Check HTML ID.");
             }
+ // Assign new search elements
+        searchTitleInput = document.getElementById("searchTitleInput");
+        searchYearInput = document.getElementById("searchYearInput");
+        applySearchBtn = document.getElementById("applySearchBtn");
+        clearSearchBtn = document.getElementById("clearSearchBtn");
 
+        // Add logs to confirm new elements are found
+        console.log("searchTitleInput element:", searchTitleInput);
+        console.log("applySearchBtn element:", applySearchBtn);
+         // Event listener for Apply Search button
+            if (applySearchBtn) {
+                applySearchBtn.addEventListener("click", applySortAndFilter);
+                console.log("applySearchBtn listener attached.");
+            } else {
+                console.error("ERROR: applySearchBtn element not found. Check HTML ID.");
+            }
+
+            // Event listener for Clear Search button
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener("click", () => {
+                    if (searchTitleInput) searchTitleInput.value = "";
+                    if (searchYearInput) searchYearInput.value = "";
+                    applySortAndFilter(); // Re-apply filters/sort after clearing search
+                });
+                console.log("clearSearchBtn listener attached.");
+            } else {
+                console.error("ERROR: clearSearchBtn element not found. Check HTML ID.");
+            }
             // Manual Add Button
             if (addManuallyBtn) {
                 addManuallyBtn.addEventListener("click", () => {
