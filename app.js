@@ -390,8 +390,8 @@ app.post('/movies/add-manual', async (req, res) => {
         res.status(500).json({ message: 'Failed to add movie.', error: error.message });
     }
 });
-
+const PORT = process.env.PORT || 3000;
 // --- Server Start ---
-app.listen(3000, () => {
-    console.log("Server running at port 3000");
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
 });
