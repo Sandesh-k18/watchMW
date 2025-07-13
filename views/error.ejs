@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #343a40;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .error-container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+        }
+        h1 {
+            color: #dc3545; /* Red color for error */
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        h2 {
+            color: #6c757d;
+            font-size: 1.5em;
+            margin-top: 10px;
+            margin-bottom: 25px;
+        }
+        pre {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            overflow-x: auto;
+            white-space: pre-wrap; /* Wrap long lines */
+            word-break: break-all; /* Break words for very long lines */
+        }
+        p {
+            font-size: 1.1em;
+            color: #495057;
+            margin-top: 20px;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>Oops! Something went wrong.</h1>
+        <h2>Error: <%= typeof message !== 'undefined' ? message : 'An unknown error occurred' %></h2>
+        <% // ADDED: Check if 'error' is defined before accessing its properties %>
+        <% if (typeof error !== 'undefined' && error !== null && error.status) { %>
+            <p>Status Code: <%= error.status %></p>
+        <% } %>
+        <% // ADDED: Check if 'error' is defined before accessing its properties %>
+        <% if (typeof error !== 'undefined' && error !== null && error.stack && process.env.NODE_ENV === 'development') { %>
+            <h3>Stack Trace:</h3>
+            <pre><%= error.stack %></pre>
+        <% } %>
+        <p>
+            Please try again later or go back to the <a href="/">homepage</a>.
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= movie.title || 'Manual Movie Details' %></title>
+    <link rel="stylesheet" href="/css/manual-details.css">
+</head>
+<body>
+    <header class="manual-header">
+        <div class="manual-header-container">
+            <h1><a href="/">MovieVerse</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/search">Search Movies</a></li>
+                    <li><a href="/user/list">My Watchlist</a></li>
+                    <% if (user) { %>
+                        <li><a href="/user/profile">Profile (<%= user.email || 'User' %>)</a></li>
+                        <li><a href="#" id="logoutButton">Logout</a></li>
+                    <% } else { %>
+                        <li><a href="/user/login">Login</a></li>
+                        <li><a href="/user/register">Register</a></li>
+                    <% } %>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container movie-detail-container">
+        <h1><%= movie.title || 'Manual Movie Details' %></h1>
+
+        <div class="movie-detail-main-info">
+            <img src="/images/your_logo_filename.png" alt="<%= movie.title %> Poster" class="detail-poster-image custom-manual-poster">
+            
+            <div class="detail-text-info">
+                <p><strong>Year:</strong> <%= movie.year || 'N/A' %></p>
+                
+                <p><strong>Status:</strong> <span class="status-badge <%= movie.status ? movie.status.toLowerCase().replace(/\s/g, '-') : 'plan-to-watch' %>"><%= movie.status || 'Plan to Watch' %></span></p>
+                
+                <p><strong>Type:</strong> <%= movie.type || 'Movie' %></p>
+                
+                <% if (movie.genres && movie.genres.length > 0) { %>
+                    <p><strong>Genre(s):</strong> <%= movie.genres.join(', ') %></p>
+                <% } %>
+                
+                <h3>Overview</h3>
+                <p><%= movie.overview || 'No overview available.' %></p>
+            </div>
+        </div>
+
+        <div class="detail-review-section">
+            <h3>Your Notes/Review</h3>
+            <textarea id="detailMovieReview" class="movie-review-textarea" rows="5" placeholder="Write your notes or review here..."><%= movie.review || '' %></textarea>
+
+            <label for="detailMovieStatus">Update Status:</label>
+            <select id="detailMovieStatus" class="movie-status-dropdown">
+                <option value="Plan to Watch" <%= movie.status === 'Plan to Watch' ? 'selected' : '' %>>Plan to Watch</option>
+                <option value="Watching" <%= movie.status === 'Watching' ? 'selected' : '' %>>Watching</option>
+                <option value="Completed" <%= movie.status === 'Completed' ? 'selected' : '' %>>Completed</option>
+                <option value="On Hold" <%= movie.status === 'On Hold' ? 'selected' : '' %>>On Hold</option>
+                <option value="Dropped" <%= movie.status === 'Dropped' ? 'selected' : '' %>>Dropped</option>
+            </select>
+
+            <div class="detail-action-buttons">
+                <button id="updateDetailMovieButton" class="btn btn-primary">Update Watchlist</button>
+                <button id="removeDetailMovieButton" class="btn btn-danger">Remove from Watchlist</button>
+            </div>
+            <p id="detailMessage" class="message"></p> </div>
+
+    </main>
+
+    <div id="loadingIndicator" class="loading-indicator hidden">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <div id="messageBox" class="message-box-overlay">
+        <div class="message-box-content">
+            <span id="closeMessageBox" class="close-button">&times;</span>
+            <h3 id="messageTitle"></h3>
+            <p id="messageContent"></p>
+            <div class="message-box-buttons"></div>
+        </div>
+    </div>
+
+    <footer class="manual-footer">
+        <p>&copy; <%= new Date().getFullYear() %> MovieVerse. All rights reserved.</p>
+    </footer>
+
+    <script type="module">
+        import {
+            initializeApp,
+            getApps,
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, deleteDoc, updateDoc, Timestamp, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase variables (initialize here for this specific page)
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let appId = `<%- __app_id || 'default-app-id' %>`; // Injected from server
+        let firebaseConfig = {}; // Will be parsed from EJS
+
+        // DOM Elements for listed movie details
+        let detailMovieReview;
+        let detailMovieStatus;
+        let updateDetailMovieButton;
+        let removeDetailMovieButton;
+        let detailMessage; // For local messages on the detail page
+
+        // For the global message box
+        let messageBox;
+        let messageTitle;
+        let messageContent;
+        let loadingIndicator;
+
+        // Function to show a custom message box (copied from list.ejs)
+        function showMessageBox(title, message, isConfirm = false, onConfirm = null) {
+            if (messageBox && messageTitle && messageContent) {
+                messageTitle.textContent = title;
+                messageContent.textContent = message;
+                messageBox.classList.add("show");
+
+                const existingButtons = messageBox.querySelectorAll('.message-box-buttons button');
+                existingButtons.forEach(btn => btn.remove());
+
+                if (isConfirm && onConfirm) {
+                    const confirmButton = document.createElement('button');
+                    confirmButton.textContent = 'Confirm';
+                    confirmButton.classList.add('btn', 'btn-danger');
+                    confirmButton.style.marginRight = '10px';
+                    confirmButton.addEventListener('click', () => {
+                        onConfirm();
+                        hideMessageBox();
+                    });
+
+                    const cancelButton = document.createElement('button');
+                    cancelButton.textContent = 'Cancel';
+                    cancelButton.classList.add('btn', 'btn-secondary');
+                    cancelButton.addEventListener('click', () => {
+                        hideMessageBox();
+                    });
+
+                    const buttonContainer = messageBox.querySelector('.message-box-buttons');
+                    if (buttonContainer) {
+                        buttonContainer.appendChild(confirmButton);
+                        buttonContainer.appendChild(cancelButton);
+                    }
+                }
+            } else {
+                console.error("Message box elements not found (in showMessageBox fallback).");
+                alert(`${title}\n\n${message}`); // Fallback alert
+            }
+        }
+
+        // Function to hide the custom message box
+        function hideMessageBox() {
+            if (messageBox) {
+                messageBox.classList.remove("show");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Assign global message box and loading indicator elements first
+            messageBox = document.getElementById("messageBox");
+            messageTitle = document.getElementById("messageTitle");
+            messageContent = document.getElementById("messageContent");
+            loadingIndicator = document.getElementById("loadingIndicator");
+            const closeMessageBox = document.getElementById("closeMessageBox");
+
+            if (closeMessageBox) {
+                closeMessageBox.addEventListener("click", hideMessageBox);
+            }
+
+            // --- Header Logout Button Logic ---
+            const logoutButton = document.getElementById("logoutButton");
+            if (logoutButton) {
+                logoutButton.addEventListener("click", async (e) => {
+                    e.preventDefault();
+                    try {
+                        await signOut(auth);
+                        // Clear cookie or localStorage if you store tokens there
+                        document.cookie = "idToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                        // Redirect to home or login page
+                        window.location.href = "/user/login";
+                    } catch (error) {
+                        console.error("Error logging out:", error);
+                        showMessageBox("Logout Error", "Failed to log out. Please try again.");
+                    }
+                });
+            }
+
+            // Firebase Initialization for this page
+            try {
+                // Parse firebaseConfig from EJS (it's passed as a string)
+                const rawFirebaseConfig = '<%- firebaseConfig || "{}" %>';
+                try {
+                    firebaseConfig = JSON.parse(rawFirebaseConfig);
+                } catch (parseError) {
+                    console.error("Error parsing FIREBASE_CONFIG from EJS:", parseError);
+                    showMessageBox("Firebase Error", `Failed to parse Firebase configuration: ${parseError.message}.`);
+                    if (loadingIndicator) loadingIndicator.classList.add("hidden");
+                    return;
+                }
+
+                if (!getApps().length) {
+                    app = initializeApp(firebaseConfig);
+                } else {
+                    app = getApps()[0];
+                }
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Authenticate anonymously or with token
+                const initialAuthToken = `<%- __initial_auth_token || 'null' %>`;
+                if (initialAuthToken !== 'null') {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Firebase: User signed in on manual details page:", user.uid);
+                        // Assign and enable elements for manual movie features
+                        detailMovieReview = document.getElementById("detailMovieReview");
+                        detailMovieStatus = document.getElementById("detailMovieStatus");
+                        updateDetailMovieButton = document.getElementById("updateDetailMovieButton");
+                        removeDetailMovieButton = document.getElementById("removeDetailMovieButton");
+                        detailMessage = document.getElementById("detailMessage");
+
+                        if (updateDetailMovieButton) updateDetailMovieButton.disabled = false;
+                        if (removeDetailMovieButton) removeDetailMovieButton.disabled = false;
+                        if (detailMovieReview) detailMovieReview.disabled = false;
+                        if (detailMovieStatus) detailMovieStatus.disabled = false;
+                    } else {
+                        userId = null;
+                        console.log("Firebase: User signed out on manual details page.");
+                        // Disable all interactive elements if not logged in
+                        detailMovieReview = document.getElementById("detailMovieReview");
+                        detailMovieStatus = document.getElementById("detailMovieStatus");
+                        updateDetailMovieButton = document.getElementById("updateDetailMovieButton");
+                        removeDetailMovieButton = document.getElementById("removeDetailMovieButton");
+
+                        if (updateDetailMovieButton) updateDetailMovieButton.disabled = true;
+                        if (removeDetailMovieButton) removeDetailMovieButton.disabled = true;
+                        if (detailMovieReview) detailMovieReview.disabled = true;
+                        if (detailMovieStatus) detailMovieStatus.disabled = true;
+                        showMessageBox("Authentication Required", "You must be logged in to interact with movie details.");
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization failed on manual details page:", error);
+                showMessageBox("Firebase Error", `Failed to initialize Firebase: ${error.message}.`);
+            }
+
+            // Get movie ID from EJS (Firestore Document ID for manual entries)
+            const movieId = `<%= movie.id %>`; 
+
+            // Event listener for Update button (always present for manual entries)
+            if (updateDetailMovieButton) {
+                updateDetailMovieButton.addEventListener("click", async () => {
+                    if (!userId) {
+                        showMessageBox("Authentication Required", "Please log in to update your movie.");
+                        return;
+                    }
+                    if (!movieId) {
+                        showMessageBox("Error", "Movie ID not found.");
+                        return;
+                    }
+
+                    loadingIndicator.classList.remove("hidden");
+                    if (detailMessage) {
+                        detailMessage.textContent = "Updating...";
+                        detailMessage.style.color = "blue";
+                    }
+
+                    try {
+                        const user = auth.currentUser;
+                        if (!user) {
+                            showMessageBox("Authentication Error", "No authenticated user found.");
+                            loadingIndicator.classList.add("hidden");
+                            return;
+                        }
+                        const idToken = await user.getIdToken();
+
+                        const newReview = detailMovieReview.value.trim();
+                        const newStatus = detailMovieStatus.value;
+
+                        const response = await fetch(`/movies/update-movie/${movieId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${idToken}`
+                            },
+                            body: JSON.stringify({ status: newStatus, review: newReview })
+                        });
+
+                        const result = await response.json();
+                        if (response.ok) {
+                            if (detailMessage) {
+                                detailMessage.textContent = result.message || "Movie updated successfully!";
+                                detailMessage.style.color = "green";
+                            }
+                            showMessageBox("Success", result.message || "Movie updated successfully!");
+                        } else {
+                            if (detailMessage) {
+                                detailMessage.textContent = result.message || "Failed to update movie.";
+                                detailMessage.style.color = "red";
+                            }
+                            showMessageBox("Error", result.message || "Failed to update movie.");
+                        }
+                    } catch (error) {
+                        console.error("Error updating manual movie details:", error);
+                        if (detailMessage) {
+                            detailMessage.textContent = "Network error or server unavailable.";
+                            detailMessage.style.color = "red";
+                        }
+                        showMessageBox("Error", `Network error or server unavailable: ${error.message}`);
+                    } finally {
+                        loadingIndicator.classList.add("hidden");
+                    }
+                });
+            }
+
+            // Event listener for Remove button (always present for manual entries)
+            if (removeDetailMovieButton) {
+                removeDetailMovieButton.addEventListener("click", async () => {
+                    if (!userId) {
+                        showMessageBox("Authentication Required", "Please log in to remove your movie.");
+                        return;
+                    }
+                    if (!movieId) {
+                        showMessageBox("Error", "Movie ID not found.");
+                        return;
+                    }
+
+                    showMessageBox(
+                        "Confirm Removal",
+                        "Are you sure you want to remove this movie from your watchlist?",
+                        true, // isConfirm = true
+                        async () => { // onConfirm callback
+                            loadingIndicator.classList.remove("hidden");
+                            if (detailMessage) {
+                                detailMessage.textContent = "Removing...";
+                                detailMessage.style.color = "blue";
+                            }
+
+                            try {
+                                const user = auth.currentUser;
+                                if (!user) {
+                                    showMessageBox("Authentication Error", "No authenticated user found.");
+                                    loadingIndicator.classList.add("hidden");
+                                    return;
+                                }
+                                const idToken = await user.getIdToken();
+
+                                const response = await fetch(`/movies/delete-movie/${movieId}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': `Bearer ${idToken}`
+                                    }
+                                });
+                                if (response.ok) {
+                                    showMessageBox("Success", "Movie removed successfully!");
+                                    if (detailMessage) {
+                                        detailMessage.textContent = "Movie removed successfully! Redirecting...";
+                                        detailMessage.style.color = "green";
+                                    }
+                                    // Redirect back to watchlist after successful removal
+                                    setTimeout(() => {
+                                        window.location.href = '/user/list';
+                                    }, 1500);
+                                } else {
+                                    const errorResult = await response.json();
+                                    console.error("Error removing movie from manual details page:", errorResult.message);
+                                    if (detailMessage) {
+                                        detailMessage.textContent = "Failed to remove movie.";
+                                        detailMessage.style.color = "red";
+                                    }
+                                    showMessageBox("Error", `Failed to remove movie: ${errorResult.message}`);
+                                }
+                            } catch (error) {
+                                console.error("Error removing movie from manual details page:", error);
+                                if (detailMessage) {
+                                    detailMessage.textContent = "Network error or server unavailable.";
+                                    detailMessage.style.color = "red";
+                                }
+                                showMessageBox("Error", `Network error or server unavailable: ${error.message}`);
+                            } finally {
+                                loadingIndicator.classList.add("hidden");
+                            }
+                        }
+                    );
+                });
+            }
+        });
+    </script>
+</body>
+</html>
