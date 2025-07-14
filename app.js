@@ -13,8 +13,25 @@ const app = express();
 // --- Firebase Admin SDK Initialization ---
 // Ensure you have your service account key file
 // IMPORTANT: Adjust this path if your serviceKey.json is in a different location!
-const serviceAccount = require('./config/serviceKey.json');
-
+// const serviceAccount = require('./config/serviceKey.json');
+let serviceAccount;
+try {
+  // Check if the environment variable is set (for Render deployment)
+  if (process.env.SERVICE_ACCOUNT_KEY_JSON) {
+    // Parse the JSON string from the environment variable
+    serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_KEY_JSON);
+  } else {
+    // Fallback for local development: load from the local file
+    // IMPORTANT: Ensure this file is in your .gitignore so it's not pushed to GitHub!
+    console.warn("SERVICE_ACCOUNT_KEY_JSON environment variable not found. Attempting to load from local file for development.");
+    serviceAccount = require('./config/serviceKey.json');
+  }
+} catch (error) {
+  console.error("Error loading service account key:", error);
+  // Depending on how critical this is, you might want to exit the process
+  // process.exit(1);
+  throw new Error("Failed to load service account key configuration.");
+}
 // Initialize Firebase Admin SDK once
 if (!admin.apps.length) { // Prevents re-initialization in development
     admin.initializeApp({
