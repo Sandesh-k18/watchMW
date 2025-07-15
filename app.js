@@ -9,7 +9,7 @@ const admin = require('firebase-admin'); // Firebase Admin SDK
 
 // Initialize Express app
 const app = express();
-
+app.use(express.json());
 // --- Firebase Admin SDK Initialization ---
 // Ensure you have your service account key file
 // IMPORTANT: Adjust this path if your serviceKey.json is in a different location!

@@ -405,17 +405,21 @@ h1 {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.4); /* Lighter overlay for modals */
-  display: flex;
+  background-color: rgba(0, 0, 0, 0.4);
+  /* Make sure these are hidden by default */
+  display: none; /* ADD THIS LINE BACK! */
   justify-content: center;
   align-items: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  /* Removed: opacity: 0; */
+  /* Removed: visibility: hidden; */
+  transition: opacity 0.3s ease, visibility 0.3s ease; /* Keep for potential future use or if other parts use the .show class */
   backdrop-filter: blur(5px);
 }
+
+/* This block should remain as is to handle the '.show' class */
 .message-box-overlay.show,
 .modal.show {
+  display: flex !important; /* Ensures it becomes flex when 'show' class is present */
   opacity: 1;
   visibility: visible;
 }
